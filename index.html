@@ -130,8 +130,9 @@
         <div class="box-title">出口 IP 速览（多源合并）</div>
         <div class="box-info" id="src-ipspeed">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api.ipify.org?format=json" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipify</span></div>
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api.ip.sb" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">api.ip.sb</span></div>
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://ipinfo.io/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipinfo.io</span></div>
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv4.ip.sb/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipv4.ip.sb</span></div>
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv6.ip.sb/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipv6.ip.sb</span></div>
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://exservice.12306.cn/excater/bonree/grip" data-tpl="{di}">测试中...</span> <span class="src-tag">12306</span></div>
         </div>
       </div>
@@ -255,9 +256,8 @@
 /* ===== 统一自适应读取与回填 v3 =====
  * 每个块通过 data-api 声明接口地址，data-tpl 声明回填模板，
  * 由本段 JS 统一拉取、自适应解析 JSON 并填入对应块。
- * 可选属性：data-jsonp（JSONP 回调名）/ data-charset（脚本编码）/ data-cors="no"（已知无 CORS）
+ * 可选属性：data-jsonp（JSONP 回调名）/ data-charset（脚本编码）
  */
-var PROXY_BASE = 'https://ippx.chaosection.top/?url=';      /* 自有反代（chaosection.top）；反代代码见 cf-proxy-worker.js；需后端按 ?url= 约定部署 */
 var REQ_TIMEOUT = 10000;  /* 单个请求超时(ms) */
 var BAIDU_WORKER = 'https://baidu-mt-proxy.741284898.workers.dev';     /* 百度翻译代理 Worker（已部署到 Cloudflare workers.dev；CORS 已放行 ip.chaosection.top，页面从该域名跨域调用即可）；留空则不翻译，退回静态表/英文 */
 
@@ -364,26 +364,96 @@ var CN_ISO2 = {
   'KW':'科威特','JO':'约旦','LB':'黎巴嫩','OM':'阿曼','CO':'哥伦比亚','PE':'秘鲁','VE':'委内瑞拉','EC':'厄瓜多尔',
   'UY':'乌拉圭','CR':'哥斯达黎加','PA':'巴拿马','GT':'危地马拉'
 };
-/* 中国省/市/自治区缩写码 -> 中文（央视网等接口返回 province_code / city_code 时用，源自官方行政区划编码表） */
-var CN_PROV_ABBREV = {
-  'BJ':'北京市','TJ':'天津市','HE':'河北省','SX':'山西省','NM':'内蒙古',
-  'LN':'辽宁省','JL':'吉林省','HL':'黑龙江省','SH':'上海市','JS':'江苏省',
-  'ZJ':'浙江省','AH':'安徽省','FJ':'福建省','JX':'江西省','SD':'山东省',
-  'HA':'河南省','HB':'湖北省','HN':'湖南省','GD':'广东省','GX':'广西',
-  'HI':'海南省','CQ':'重庆市','SC':'四川省','GZ':'贵州省','YN':'云南省',
-  'XZ':'西藏','SN':'陕西省','GS':'甘肃省','QH':'青海省','NX':'宁夏',
-  'XJ':'新疆','TW':'台湾省','HK':'香港','MO':'澳门'
+/* 中华人民共和国行政区划代码 GB/T 2260-2007（表1：省/自治区/直辖市/特别行政区）
+ * code = 6 位数字码；name = 全称；abbr = 字母码（央视网等接口称“字幕码”）
+ * 来源：国家标准化管理委员会 GB/T 2260-2007 表1 */
+var CN_PROV_GBT2260 = [
+  {code:'110000', name:'北京市',            abbr:'BJ'},
+  {code:'120000', name:'天津市',            abbr:'TJ'},
+  {code:'130000', name:'河北省',            abbr:'HE'},
+  {code:'140000', name:'山西省',            abbr:'SX'},
+  {code:'150000', name:'内蒙古自治区',      abbr:'NM'},
+  {code:'210000', name:'辽宁省',            abbr:'LN'},
+  {code:'220000', name:'吉林省',            abbr:'JL'},
+  {code:'230000', name:'黑龙江省',          abbr:'HL'},
+  {code:'310000', name:'上海市',            abbr:'SH'},
+  {code:'320000', name:'江苏省',            abbr:'JS'},
+  {code:'330000', name:'浙江省',            abbr:'ZJ'},
+  {code:'340000', name:'安徽省',            abbr:'AH'},
+  {code:'350000', name:'福建省',            abbr:'FJ'},
+  {code:'360000', name:'江西省',            abbr:'JX'},
+  {code:'370000', name:'山东省',            abbr:'SD'},
+  {code:'410000', name:'河南省',            abbr:'HA'},
+  {code:'420000', name:'湖北省',            abbr:'HB'},
+  {code:'430000', name:'湖南省',            abbr:'HN'},
+  {code:'440000', name:'广东省',            abbr:'GD'},
+  {code:'450000', name:'广西壮族自治区',    abbr:'GX'},
+  {code:'460000', name:'海南省',            abbr:'HI'},
+  {code:'500000', name:'重庆市',            abbr:'CQ'},
+  {code:'510000', name:'四川省',            abbr:'SC'},
+  {code:'520000', name:'贵州省',            abbr:'GZ'},
+  {code:'530000', name:'云南省',            abbr:'YN'},
+  {code:'540000', name:'西藏自治区',        abbr:'XZ'},
+  {code:'610000', name:'陕西省',            abbr:'SN'},
+  {code:'620000', name:'甘肃省',            abbr:'GS'},
+  {code:'630000', name:'青海省',            abbr:'QH'},
+  {code:'640000', name:'宁夏回族自治区',    abbr:'NX'},
+  {code:'650000', name:'新疆维吾尔自治区',  abbr:'XJ'},
+  {code:'710000', name:'台湾省',            abbr:'TW'},
+  {code:'810000', name:'香港特别行政区',    abbr:'HK'},
+  {code:'820000', name:'澳门特别行政区',    abbr:'MO'}
+];
+/* 字母码(字幕码) -> 全称（静态翻译，零调用） */
+var CN_PROV_ABBREV = {};
+CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
+
+/* 央视网 city_code 静态翻译。
+ * 键为“省级字幕码_市级字幕码”组合键（如 广西南宁 = GX_NN），避免拼音首字母碰撞误译
+ * （例如 GZ 既可能是广州也可能是赣州/贵州）。市级字幕码取城市名各字拼音首字母。
+ * 直辖市 city 与 prov 同码（BJ_BJ 等）。仅收录常用城市；未收录的回退显示原码，绝不误译。可按需扩展。 */
+var CN_CITY_ABBREV = {
+  'BJ_BJ':'北京市','TJ_TJ':'天津市','HE_SJ':'石家庄市','HE_TS':'唐山市','SX_TY':'太原市','NM_HH':'呼和浩特市',
+  'LN_SY':'沈阳市','LN_DL':'大连市','JL_CC':'长春市','HL_HE':'哈尔滨市',
+  'SH_SH':'上海市','JS_NJ':'南京市','JS_SZ':'苏州市','JS_WX':'无锡市','JS_NT':'南通市','JS_XZ':'徐州市','JS_YZ':'扬州市','JS_CZ':'常州市',
+  'ZJ_HZ':'杭州市','ZJ_NB':'宁波市','ZJ_WZ':'温州市','ZJ_SX':'绍兴市','ZJ_JX':'嘉兴市','ZJ_JH':'金华市','ZJ_TZ':'台州市',
+  'AH_HF':'合肥市','FJ_FZ':'福州市','FJ_XM':'厦门市','FJ_QZ':'泉州市','FJ_ZZ':'漳州市',
+  'JX_NC':'南昌市','JX_GZ':'赣州市',
+  'SD_JN':'济南市','SD_QD':'青岛市','SD_YT':'烟台市','SD_WF':'潍坊市','SD_LY':'临沂市','SD_ZB':'淄博市',
+  'HA_ZZ':'郑州市','HA_LY':'洛阳市',
+  'HB_WH':'武汉市',
+  'HN_CS':'长沙市',
+  'GD_GZ':'广州市','GD_SZ':'深圳市','GD_ZH':'珠海市','GD_FS':'佛山市','GD_DG':'东莞市',
+  'GX_NN':'南宁市',
+  'HI_HK':'海口市',
+  'CQ_CQ':'重庆市',
+  'SC_CD':'成都市',
+  'GZ_GY':'贵阳市',
+  'YN_KM':'昆明市',
+  'XZ_LS':'拉萨市',
+  'SN_XA':'西安市',
+  'GS_LZ':'兰州市',
+  'QH_XN':'西宁市',
+  'NX_YC':'银川市',
+  'XJ_WM':'乌鲁木齐市',
+  'TW_TB':'台北市',
+  'HK_HK':'香港','MO_MO':'澳门','MO_OM':'澳门'
 };
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
+var _lastProv = '';
 function cnGeo(name, val){
   if (val === undefined || val === null || val === '') return val;
   var lc = String(name).split('.').pop().trim().toLowerCase();
   var v = String(val).trim();
   /* 国家/地区静态翻译 */
   if (lc === 'country' || lc === 'country_name' || lc === 'cc' || lc === 'country_code'){ return CN_COUNTRIES[v] || CN_ISO2[String(v).toUpperCase()] || v; }
-  /* 省市缩写码翻译（央视网 province_code / city_code 等） */
-  if (lc === 'province_code' || lc === 'city_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code'){
-    return CN_PROV_ABBREV[v.toUpperCase()] || v;
+  /* 省/自治区/直辖市/特别行政区（字母码 -> 全称） */
+  if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code'){
+    _lastProv = v.toUpperCase();
+    return CN_PROV_ABBREV[_lastProv] || v;
+  }
+  /* 城市（组合键 省_市，避免拼音首字母碰撞；未收录回退原码） */
+  if (lc === 'city_code'){
+    return CN_CITY_ABBREV[_lastProv + '_' + v.toUpperCase()] || v;
   }
   return v;
 }
@@ -493,9 +563,7 @@ function fillSpan(span, json){
 }
 function failSpan(span){
   if (span.getAttribute('data-role') !== 'ip'){ span.innerText = ''; setRow(span, false); return; }
-  var noCors = span.getAttribute('data-cors') === 'no' ||
-               (span.closest && span.closest('[data-cors="no"]'));
-  span.innerText = noCors ? '跨域受限（需配置代理）' : '数据获取出错';
+  span.innerText = '数据获取出错';
   markIpProto(span, '');
   setRow(span, true);
 }
@@ -536,8 +604,7 @@ function fetchJsonp(url, cbName, charset){
 function fetchJson(url, opt){
   opt = opt || {};
   if (opt.jsonp) return fetchJsonp(url, opt.jsonp, opt.charset);
-  if (opt.cors === 'no' && PROXY_BASE) url = PROXY_BASE + encodeURIComponent(url);
-  /* 纯文本源（如 api.ip.sb / ipinfo.io/ip 直接返回裸 IP 文本）：取文本后包成 {ip} 供模板复用 */
+  /* 纯文本源（如 ipinfo.io/ip 直接返回裸 IP 文本）：取文本后包成 {ip} 供模板复用 */
   if (opt.plain && typeof fetch !== 'undefined'){
     var acp = new AbortController();
     var tp = setTimeout(function(){ acp.abort(); }, REQ_TIMEOUT);
@@ -555,7 +622,7 @@ function fetchJson(url, opt){
   return Promise.reject(new Error('no fetch'));
 }
 function spanOpt(span){
-  return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), cors: span.getAttribute('data-cors'), plain: span.getAttribute('data-plain') };
+  return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), plain: span.getAttribute('data-plain') };
 }
 /* 百度翻译兜底：把静态表未覆盖、仍是英文的地理字段批量翻成中文。
  * 静态 CN_* 表已覆盖常见国家/省/市（零调用、即时），此处只补表外新值。
@@ -640,7 +707,7 @@ function search(){
 }
 loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining);
 
-function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();const timeout=setTimeout(()=>{handleFailure('连接超时（5秒）')},5000);function handleSuccess(){clearTimeout(timeout);const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){clearTimeout(timeout);document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store'}).then(handleSuccess).catch((err)=>{console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img=[{url:'https://weixin.qq.com/',id:'wechat',img:'https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon64_appwx_logo.png'},{url:'https://github.com/',id:'github',img:'https://github.com/favicon.ico'},{url:'https://www.cloudflare.com/',id:'cloudflare',img:'https://www.cloudflare.com/favicon.ico'},{url:'https://www.baidu.com/',id:'baidu',img:'https://www.baidu.com/favicon.ico'},{url:'https://www.youtube.com/',id:'youtube',img:'https://www.youtube.com/favicon.ico'},{url:'https://www.google.com/',id:'google',img:'https://www.google.com/favicon.ico'},{url:'https://chatgpt.com/',id:'chatgpt',img:'https://chatgpt.com/favicon.ico'},{url:'https://www.x.com/',id:'x',img:'https://www.x.com/favicon.ico'},{url:'https://v.qq.com/',id:'vqq',img:'https://v.qq.com/favicon.ico'},{url:'https://www.iqiyi.com/',id:'iqiyi',img:'https://www.iqiyi.com/favicon.ico'},{url:'https://www.youku.com/',id:'youku',img:'https://img.alicdn.com/imgextra/i2/O1CN01BeAcgL1ywY0G5nSn8_!!6000000006643-2-tps-195-195.png'},{url:'https://www.mgtv.com/',id:'mgtv',img:'https://www.mgtv.com/favicon.ico'},];Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
+function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();const timeout=setTimeout(()=>{handleFailure('连接超时（5秒）')},5000);function handleSuccess(){clearTimeout(timeout);const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){clearTimeout(timeout);document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store'}).then(handleSuccess).catch((err)=>{console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img=[{url:'https://weixin.qq.com/',id:'wechat',img:'https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon64_appwx_logo.png'},{url:'https://github.com/',id:'github',img:'https://github.com/favicon.ico'},{url:'https://www.cloudflare.com/',id:'cloudflare',img:'https://www.cloudflare.com/favicon.ico'},{url:'https://www.baidu.com/',id:'baidu',img:'https://www.baidu.com/favicon.ico'},{url:'https://www.youtube.com/',id:'youtube',img:'https://www.youtube.com/favicon.ico'},{url:'https://www.google.com/',id:'google',img:'https://www.google.com/favicon.ico'},{url:'https://chatgpt.com/',id:'chatgpt',img:'https://chatgpt.com/favicon.ico'},{url:'https://www.x.com/',id:'x',img:'https://abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png'},{url:'https://v.qq.com/',id:'vqq',img:'https://v.qq.com/favicon.ico'},{url:'https://www.iqiyi.com/',id:'iqiyi',img:'https://www.iqiyi.com/favicon.ico'},{url:'https://www.youku.com/',id:'youku',img:'https://img.alicdn.com/imgextra/i2/O1CN01BeAcgL1ywY0G5nSn8_!!6000000006643-2-tps-195-195.png'},{url:'https://www.mgtv.com/',id:'mgtv',img:'https://www.mgtv.com/favicon.ico'},];Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
 </script>
   <script>window.__CF$cv$params={r:'a28bf44e3d705708',t:'MTc4NjMzMjk2Ng==',u:'019fe9bded0b7d83a1a562b6f2c52a08',ut:'iGtjFR8w3T7yVT1PQqvAN_aVviUm9IJ0giWDazlauGM-1786332966-1.2.1.1-u0Ld.PPVRdCHVSRtzrlSnDK.isTaFuun8IFTEjoDK1CiPgGspacg1UhDWikPxRp5Gfwq_NnAJX_1yU4OtACSsVclwogiM6Tquvg_uQtSpX4',i:60};(function(){if(!document.body)return;var s=document.createElement('script');s.src='/cdn-cgi/challenge-platform/scripts/precursor/main.js';document.head.appendChild(s);})();</script></body>
 </html>
