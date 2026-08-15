@@ -119,6 +119,15 @@ async function translateText(env, { q, from = 'auto', to = 'zh' }) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    // 兼容同域相对路径挂载：若经 /cf-mt-worker.js 前缀路由进来，去掉前缀再匹配路由
+    let p = url.pathname;
+    const MT_PREFIX = '/cf-mt-worker.js';
+    if (p.startsWith(MT_PREFIX)) p = p.slice(MT_PREFIX.length) || '/';
+    // 统一部署（Workers Static Assets）：绑定了 ASSETS 时，非翻译路由直接托管静态站点（index.html）；
+    // 未绑定 ASSETS（独立翻译 Worker）时此分支自动跳过，行为与旧版一致
+    if (env.ASSETS && p !== '/mt/download' && p !== '/mt/translate' && p !== '/mt/text') {
+      return env.ASSETS.fetch(request);
+    }
     const ALLOWED = env.ALLOWED_ORIGIN || 'https://ip.chaosection.top';
     if (request.method === 'OPTIONS') return cors(new Response(null, { status: 204 }), ALLOWED);
 
@@ -126,7 +135,7 @@ export default {
     if (origin && origin !== ALLOWED) return json({ error: 'forbidden origin' }, 403, ALLOWED);
 
     // 下载译文（代理百度 CDN，绕开可能的跨域/过期限制）
-    if (url.pathname === '/mt/download' && request.method === 'POST') {
+    if (p === '/mt/download' && request.method === 'POST') {
       let b; try { b = await request.json(); } catch { return json({ error: 'bad json' }, 400, ALLOWED); }
       if (!b.url) return json({ error: 'missing url' }, 400, ALLOWED);
       const fr = await fetch(b.url);
@@ -137,7 +146,7 @@ export default {
       return cors(resp, ALLOWED);
     }
 
-    if (url.pathname === '/mt/translate' && request.method === 'POST') {
+    if (p === '/mt/translate' && request.method === 'POST') {
       const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
       if (!(await rateOK(env, ip))) return json({ error: 'rate limited' }, 429, ALLOWED);
       let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, 400, ALLOWED); }
@@ -152,7 +161,7 @@ export default {
       }
     }
     // 文本翻译（供 IP 工具箱把英文归属地批量翻成中文，1 次调用返回有序译文）
-    if (url.pathname === '/mt/text' && request.method === 'POST') {
+    if (p === '/mt/text' && request.method === 'POST') {
       const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
       if (!(await rateOK(env, ip))) return json({ error: 'rate limited' }, 429, ALLOWED);
       let body; try { body = await request.json(); } catch { return json({ error: 'bad json' }, 400, ALLOWED); }

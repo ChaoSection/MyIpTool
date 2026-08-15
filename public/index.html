@@ -108,16 +108,6 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">ipapi.is</div>
-        <div class="box-info" id="src-ipapiis" data-api="https://api.ipapi.is">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">国家：<span data-tpl="{cc}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="AS{asn_num} {asn_org}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{company_name}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{lat},{lon}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
         <div class="box-title">网易大师</div>
         <div class="box-info" id="src-163" data-api="https://dashi.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163" data-jsonp="__cb163">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
@@ -264,7 +254,7 @@
  * 可选属性：data-jsonp（JSONP 回调名）/ data-charset（脚本编码）
  */
 var REQ_TIMEOUT = 10000;  /* 单个请求超时(ms) */
-var BAIDU_WORKER = 'https://baidu-mt-proxy.741284898.workers.dev';     /* 百度翻译代理 Worker（已部署到 Cloudflare workers.dev；CORS 已放行 ip.chaosection.top，页面从该域名跨域调用即可）；留空则不翻译，退回静态表/英文 */
+var BAIDU_WORKER = './cf-mt-worker.js';     /* 百度翻译代理 Worker（相对路径：需 Cloudflare 在 ip.chaosection.top 上把 /cf-mt-worker.js* 路由到该 Worker，才能同域调用）；留空则不翻译，退回静态表/英文 */
 
 function flatten(obj, prefix, out){
   out = out || {};
@@ -631,13 +621,13 @@ function spanOpt(span){
 }
 /* 百度翻译兜底：把静态表未覆盖、仍是英文的地理字段批量翻成中文。
  * 静态 CN_* 表已覆盖常见国家/省/市（零调用、即时），此处只补表外新值。
- * 经 Worker（./cf-mt-worker.js/text）一次调用完成，结果按内容缓存（重复加载 0 调用）。
+ * 经 Worker（./cf-mt-worker.js/mt/text）一次调用完成，结果按内容缓存（重复加载 0 调用）。
  * BAIDU_WORKER 留空则整段跳过，退回静态表/英文，不影响页面。 */
 /* 百度翻译兜底：把归属地中的英文（省/州、城市、运营商、ASN 等）逐词组翻成中文。
  * 国家/地区仍由 CN_COUNTRIES / CN_ISO2 静态表即时翻译（零调用），此处不再处理国家。
  * 策略：遍历所有 f-row 内字段，提取其中"连续英文字母词组"（如 California、Los Angeles、China Unicom、Google LLC），
  *       含数字者（如 ASN 前缀 "AS4837"）不单独翻译，只翻英文部分；纯数字/坐标(IP/经纬度)不翻。
- *       一次批量送 Worker（./cf-mt-worker.js/text），结果按内容缓存。BAIDU_WORKER 留空则整段跳过。 */
+ *       一次批量送 Worker（./cf-mt-worker.js/mt/text），结果按内容缓存。BAIDU_WORKER 留空则整段跳过。 */
 async function baiduTranslateRemaining(){
   if (!BAIDU_WORKER) return;
   var tokenMap = {};   // 英文词组 -> [元素]
@@ -662,7 +652,7 @@ async function baiduTranslateRemaining(){
   if (!tokens.length) return;
   tokens.sort();   // 排序以稳定缓存键，提升命中率
   try{
-    var r = await fetch(BAIDU_WORKER + '/text', {
+    var r = await fetch(BAIDU_WORKER + '/mt/text', {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ q: tokens.join('\n'), from:'auto', to:'zh' })
     });

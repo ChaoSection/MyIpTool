@@ -1,0 +1,29 @@
+# A 方案（统一部署）：一个 Worker 同时托管页面 + 翻译（Cloudflare Workers Static Assets）
+# 部署：  wrangler deploy --config wrangler-unified.toml
+# 说明：
+#   - 现有 Pages + baidu-mt-proxy 方案完全不受影响（本文件独立，且 cf-mt-worker.js 的 ASSETS 兜底
+#     对“未绑定 ASSETS 的翻译 Worker”会自动跳过，行为不变）。
+#   - 部署后默认得到 ip-toolbox.<你的子域>.workers.dev，先在子域自测，确认无误再切生产。
+#   - 切生产（可选）：在 ip.chaosection.top 区上加 Worker 路由 ip.chaosection.top/* → ip-toolbox，
+#     即可让统一 Worker 接管整站；旧的 Pages 项目可保留作回退。
+
+name = "ip-toolbox"
+main = "cf-mt-worker.js"
+compatibility_date = "2024-09-23"
+
+# 静态资产：把 public/index.html 作为站点根（非 /mt/* 请求都走这里）
+assets = { directory = "public", binding = "ASSETS" }
+
+# KV 命名空间（缓存百度 token + 限流计数，必需）
+[[kv_namespaces]]
+binding = "MT_KV"
+id = "746674d83af946ef9e09ab02e97eb7c1"
+
+# 百度翻译密钥：改用 secret 注入，不写进 toml、不进仓库（部署前先执行下方命令）
+#   wrangler secret put BAIDU_API_KEY   --config wrangler-unified.toml
+#   wrangler secret put BAIDU_SECRET_KEY --config wrangler-unified.toml
+# secret 仅存于 Cloudflare，cf-mt-worker.js 仍用 env.BAIDU_API_KEY / env.BAIDU_SECRET_KEY 读取，代码无需改
+
+[vars]
+# ALLOWED_ORIGIN 可选；同域调用无需 CORS，留空默认 https://ip.chaosection.top
+# ALLOWED_ORIGIN = "https://ip.chaosection.top"
