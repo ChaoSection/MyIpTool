@@ -71,14 +71,6 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">央视网</div>
-        <div class="box-info" id="src-cntv" data-api="https://ip.apps.cntv.cn/whereis?client=json">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country_code} {province_code} {city_code}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{isp_code}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
         <div class="box-title">UAPIs</div>
         <div class="box-info" id="src-uapis" data-api="https://uapis.cn/api/v1/network/myip">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
@@ -360,7 +352,7 @@ var CN_ISO2 = {
   'UY':'乌拉圭','CR':'哥斯达黎加','PA':'巴拿马','GT':'危地马拉'
 };
 /* 中华人民共和国行政区划代码 GB/T 2260-2007（表1：省/自治区/直辖市/特别行政区）
- * code = 6 位数字码；name = 全称；abbr = 字母码（央视网等接口称“字幕码”）
+ * code = 6 位数字码；name = 全称；abbr = 字母码（部分 IP 归属地接口称“字幕码”）
  * 来源：国家标准化管理委员会 GB/T 2260-2007 表1 */
 var CN_PROV_GBT2260 = [
   {code:'110000', name:'北京市',            abbr:'BJ'},
@@ -402,37 +394,6 @@ var CN_PROV_GBT2260 = [
 var CN_PROV_ABBREV = {};
 CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
 
-/* 央视网 city_code 静态翻译。
- * 键为“省级字幕码_市级字幕码”组合键（如 广西南宁 = GX_NN），避免拼音首字母碰撞误译
- * （例如 GZ 既可能是广州也可能是赣州/贵州）。市级字幕码取城市名各字拼音首字母。
- * 直辖市 city 与 prov 同码（BJ_BJ 等）。仅收录常用城市；未收录的回退显示原码，绝不误译。可按需扩展。 */
-var CN_CITY_ABBREV = {
-  'BJ_BJ':'北京市','TJ_TJ':'天津市','HE_SJ':'石家庄市','HE_TS':'唐山市','SX_TY':'太原市','NM_HH':'呼和浩特市',
-  'LN_SY':'沈阳市','LN_DL':'大连市','JL_CC':'长春市','HL_HE':'哈尔滨市',
-  'SH_SH':'上海市','JS_NJ':'南京市','JS_SZ':'苏州市','JS_WX':'无锡市','JS_NT':'南通市','JS_XZ':'徐州市','JS_YZ':'扬州市','JS_CZ':'常州市',
-  'ZJ_HZ':'杭州市','ZJ_NB':'宁波市','ZJ_WZ':'温州市','ZJ_SX':'绍兴市','ZJ_JX':'嘉兴市','ZJ_JH':'金华市','ZJ_TZ':'台州市',
-  'AH_HF':'合肥市','FJ_FZ':'福州市','FJ_XM':'厦门市','FJ_QZ':'泉州市','FJ_ZZ':'漳州市',
-  'JX_NC':'南昌市','JX_GZ':'赣州市',
-  'SD_JN':'济南市','SD_QD':'青岛市','SD_YT':'烟台市','SD_WF':'潍坊市','SD_LY':'临沂市','SD_ZB':'淄博市',
-  'HA_ZZ':'郑州市','HA_LY':'洛阳市',
-  'HB_WH':'武汉市',
-  'HN_CS':'长沙市',
-  'GD_GZ':'广州市','GD_SZ':'深圳市','GD_ZH':'珠海市','GD_FS':'佛山市','GD_DG':'东莞市',
-  'GX_NN':'南宁市',
-  'HI_HK':'海口市',
-  'CQ_CQ':'重庆市',
-  'SC_CD':'成都市',
-  'GZ_GY':'贵阳市',
-  'YN_KM':'昆明市',
-  'XZ_LS':'拉萨市',
-  'SN_XA':'西安市',
-  'GS_LZ':'兰州市',
-  'QH_XN':'西宁市',
-  'NX_YC':'银川市',
-  'XJ_WM':'乌鲁木齐市',
-  'TW_TB':'台北市',
-  'HK_HK':'香港','MO_MO':'澳门','MO_OM':'澳门'
-};
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
 function cnGeo(name, val){
@@ -445,10 +406,6 @@ function cnGeo(name, val){
   if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code'){
     _lastProv = v.toUpperCase();
     return CN_PROV_ABBREV[_lastProv] || v;
-  }
-  /* 城市（组合键 省_市，避免拼音首字母碰撞；未收录回退原码） */
-  if (lc === 'city_code'){
-    return CN_CITY_ABBREV[_lastProv + '_' + v.toUpperCase()] || v;
   }
   return v;
 }
