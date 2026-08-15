@@ -425,63 +425,7 @@ var CN_PROV_EN = {
   'Washington':'华盛顿州','Massachusetts':'马萨诸塞州','Pennsylvania':'宾夕法尼亚州','Ohio':'俄亥俄州','Georgia':'佐治亚州',
   'Michigan':'密歇根州','Arizona':'亚利桑那州','Virginia':'弗吉尼亚州','Oregon':'俄勒冈州','Nevada':'内华达州','Colorado':'科罗拉多州'
 };
-/* 英文城市名 -> 中文（覆盖 IP.SB 等返回英文城市名的接口；静态表零调用，不依赖反代） */
-var CN_CITY_EN = {
-  'Beijing':'北京市','Shanghai':'上海市','Tianjin':'天津市','Chongqing':'重庆市','Shijiazhuang':'石家庄市','Tangshan':'唐山市',
-  'Taiyuan':'太原市','Hohhot':'呼和浩特市','Shenyang':'沈阳市','Dalian':'大连市','Changchun':'长春市','Harbin':'哈尔滨市',
-  'Nanjing':'南京市','Suzhou':'苏州市','Wuxi':'无锡市','Nantong':'南通市','Xuzhou':'徐州市','Yangzhou':'扬州市','Changzhou':'常州市',
-  'Hangzhou':'杭州市','Ningbo':'宁波市','Wenzhou':'温州市','Shaoxing':'绍兴市','Jiaxing':'嘉兴市','Jinhua':'金华市','Taizhou':'台州市',
-  'Hefei':'合肥市','Fuzhou':'福州市','Xiamen':'厦门市','Quanzhou':'泉州市','Zhangzhou':'漳州市','Nanchang':'南昌市','Ganzhou':'赣州市',
-  'Jinan':'济南市','Qingdao':'青岛市','Yantai':'烟台市','Weifang':'潍坊市','Linyi':'临沂市','Zibo':'淄博市','Zhengzhou':'郑州市',
-  'Luoyang':'洛阳市','Wuhan':'武汉市','Changsha':'长沙市','Guangzhou':'广州市','Shenzhen':'深圳市','Zhuhai':'珠海市','Foshan':'佛山市',
-  'Dongguan':'东莞市','Nanning':'南宁市','Haikou':'海口市','Chengdu':'成都市','Guiyang':'贵阳市','Kunming':'昆明市','Lhasa':'拉萨市',
-  'Xi\'an':'西安市','Lanzhou':'兰州市','Xining':'西宁市','Yinchuan':'银川市','Urumqi':'乌鲁木齐市','Taipei':'台北市',
-  'Hong Kong':'香港','Macao':'澳门','Macau':'澳门',
-  'Los Angeles':'洛杉矶','New York':'纽约','San Francisco':'旧金山','London':'伦敦','Tokyo':'东京','Singapore':'新加坡',
-  'Paris':'巴黎','Sydney':'悉尼','Toronto':'多伦多','Seoul':'首尔','Moscow':'莫斯科','Chicago':'芝加哥','Boston':'波士顿','Seattle':'西雅图'
-};
-/* 爱奇艺 ISP 字母码 -> 中文（静态表；未收录回退原码，不误译） */
-var IQIYI_ISP = {
-  'CMNET':'中国移动','CMCC':'中国移动','CT':'中国电信','CUCC':'中国联通','CNC':'中国联通',
-  'CERNET':'教育网','CRTC':'铁通','CTT':'电信','CUC':'联通','Tietong':'铁通'
-};
-/* 爱奇艺省份拼音(驼峰) -> 中文（静态表；未收录回退原码，不误译） */
-var IQIYI_PROV = {
-  'BeiJing':'北京市','TianJin':'天津市','HeBei':'河北省','ShanXi':'山西省','NeiMongol':'内蒙古自治区',
-  'LiaoNing':'辽宁省','JiLin':'吉林省','HeiLongJiang':'黑龙江省','ShangHai':'上海市','JiangSu':'江苏省',
-  'ZheJiang':'浙江省','AnHui':'安徽省','FuJian':'福建省','JiangXi':'江西省','ShanDong':'山东省',
-  'HeNan':'河南省','HuBei':'湖北省','HuNan':'湖南省','GuangDong':'广东省','GuangXi':'广西壮族自治区',
-  'HaiNan':'海南省','ChongQing':'重庆市','SiChuan':'四川省','GuiZhou':'贵州省','YunNan':'云南省',
-  'XiZang':'西藏自治区','ShaanXi':'陕西省','GanSu':'甘肃省','QingHai':'青海省','NingXia':'宁夏回族自治区',
-  'XinJiang':'新疆维吾尔自治区','TaiWan':'台湾省','XiangGang':'香港特别行政区','AoMen':'澳门特别行政区'
-};
-/* 爱奇艺城市拼音(驼峰) -> 中文（静态表；未收录回退原码，不误译） */
-var IQIYI_CITY = {
-  'BeiJing':'北京市','ShangHai':'上海市','TianJin':'天津市','ChongQing':'重庆市','GuangZhou':'广州市',
-  'ShenZhen':'深圳市','HangZhou':'杭州市','ChengDu':'成都市','WuHan':'武汉市','XiAn':'西安市',
-  'NanJing':'南京市','SuZhou':'苏州市','QingDao':'青岛市','JiNan':'济南市','ChangSha':'长沙市',
-  'ShenYang':'沈阳市','DaLian':'大连市','KunMing':'昆明市','HeFei':'合肥市','FuZhou':'福州市',
-  'Xiamen':'厦门市','NanChang':'南昌市','GuiYang':'贵阳市','NanNing':'南宁市','HaiKou':'海口市',
-  'LanZhou':'兰州市','YinChuan':'银川市','XiNing':'西宁市','WuLuMuQi':'乌鲁木齐市','LaSa':'拉萨市',
-  'HuHeHaoTe':'呼和浩特市','ShiJiaZhuang':'石家庄市','TaiYuan':'太原市','ChangChun':'长春市','HaErBin':'哈尔滨市',
-  'ZhengZhou':'郑州市'
-};
-/* 运营商/组织英文名 -> 中文（静态兜底，百度 Worker 失效/404 时仍生效；未收录回退英文） */
-var CN_ISP = {
-  'China Mobile':'中国移动','China Telecom':'中国电信','China Unicom':'中国联通',
-  'CMCC':'中国移动','CMNET':'中国移动','CT':'中国电信','CUCC':'中国联通','CNC':'中国联通',
-  'China TieTong':'铁通','CRTC':'铁通',
-  'Google LLC':'谷歌','Google':'谷歌','Alphabet':'谷歌',
-  'Amazon.com':'亚马逊','Amazon':'亚马逊','Amazon Web Services':'AWS','AWS':'AWS',
-  'Cloudflare':'Cloudflare','Microsoft Corporation':'微软','Microsoft':'微软',
-  'Tencent':'腾讯','Tencent Cloud':'腾讯云','Alibaba':'阿里','Alibaba Cloud':'阿里云',
-  'Comcast':'康卡斯特','Verizon':'威瑞森','AT&T':'AT&T','T-Mobile':'T-Mobile','Sprint':'Sprint',
-  'DigitalOcean':'DigitalOcean','Oracle':'甲骨文','IBM':'IBM','Apple':'苹果','Meta Platforms':'Meta','Meta':'Meta',
-  'Facebook':'脸书','Linode':'Linode','Vultr':'Vultr','Hetzner':'Hetzner','OVH':'OVH',
-  'Level 3':'Level 3','Cogent':'Cogent','NTT':'NTT','SoftBank':'软银','KDDI':'KDDI',
-  'Deutsche Telekom':'德国电信','Orange':'Orange','Vodafone':'沃达丰','BT':'英国电信','British Telecom':'英国电信',
-  'Telstra':'澳洲电信','Singtel':'新加坡电信','CERNET':'教育网','China Education and Research Network':'教育网'
-};
+
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
 function cnGeo(name, val){
@@ -495,8 +439,8 @@ function cnGeo(name, val){
     _lastProv = v.toUpperCase();
     return CN_PROV_ABBREV[_lastProv] || CN_PROV_EN[v] || v;
   }
-  /* 城市：英文全称 -> 中文 */
-  if (lc === 'city'){ return CN_CITY_EN[v] || v; }
+  /* 城市：不再用静态表，原值交 baiduTranslateRemaining 走百度翻译（删表回退时显示英文） */
+  if (lc === 'city'){ return v; }
   return v;
 }
 /* 自适应取值：完整路径 -> 末段字段名 -> 别名兜底 */
@@ -630,7 +574,7 @@ var DERIVE = {
       .join(' ').replace(/\s+/g, ' ').trim();
   },
   /* 爱奇艺：t = "CMNET|HeNan_ZhengZhou-111.6.193.195" => [ISP码]|[省_市拼音]-[IP]
-   * 地址用静态表直接转中文（HeNan_ZhengZhou -> 河南_郑州），零依赖、不误译；百度 Worker 失效时仍显示中文 */
+   * 地址/运营商原值（拼音/英文）交 baiduTranslateRemaining 走百度翻译；Worker 失效时按用户决策回退拼音/英文 */
   'src-iqiyi': function(d){
     var t = d.t;
     if (!t || typeof t !== 'string') return;
@@ -640,11 +584,8 @@ var DERIVE = {
     var m = rest.split('-');
     var geo = (m[0] || '').trim();          /* 省_市 拼音（可能仅省，如 HeNan） */
     var ip = m.slice(1).join('-').trim();
-    d.iqiyi_isp = IQIYI_ISP[ispCode] || ispCode;
-    var seg = geo.split('_');              /* HeNan_ZhengZhou -> [HeNan, ZhengZhou] */
-    var pZh = IQIYI_PROV[seg[0]] || seg[0] || '';
-    var cZh = seg[1] ? (IQIYI_CITY[seg[1]] || seg[1]) : '';
-    d.iqiyi_addr = [pZh, cZh].filter(Boolean).join('_');  /* 河南_郑州，静态表零依赖 */
+    d.iqiyi_isp = ispCode;   /* 英文 ISP 码，交给百度翻译 */
+    d.iqiyi_addr = geo;      /* 省_市 拼音，交给百度翻译 */
     d.iqiyi_ip = ip;
   }
 };
@@ -685,7 +626,7 @@ function spanOpt(span){
   return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), plain: span.getAttribute('data-plain') };
 }
 /* 百度翻译兜底：把静态表未覆盖、仍是英文的地理字段批量翻成中文。
- * 静态 CN_* 表已覆盖常见国家/省/市（零调用、即时），此处只补表外新值。
+ * 静态 CN_* 表已覆盖常见国家/省/州（零调用、即时），城市/运营商等表外值此处补翻。
  * 经 Worker（./cf-mt-worker.js/mt/text）一次调用完成，结果按内容缓存（重复加载 0 调用）。
  * BAIDU_WORKER 留空则整段跳过，退回静态表/英文，不影响页面。 */
 /* 百度翻译兜底：把归属地中的英文（省/州、城市、运营商、ASN 等）逐词组翻成中文。
@@ -710,10 +651,6 @@ async function baiduTranslateRemaining(){
     ms.forEach(function(w){
       w = w.trim();
       if (w.length < 2) return;
-      if (CN_ISP[w]){   /* 静态表命中：直接替换，不依赖 Worker（Worker 404 时仍生效） */
-        if (el.textContent.indexOf(w) > -1) el.textContent = el.textContent.split(w).join(CN_ISP[w]);
-        return;
-      }
       if (!tokenMap[w]){ tokenMap[w] = []; tokens.push(w); }
       tokenMap[w].push(el);
     });
