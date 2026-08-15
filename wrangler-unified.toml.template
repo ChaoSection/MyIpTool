@@ -1,5 +1,7 @@
 # A 方案（统一部署）：一个 Worker 同时托管页面 + 翻译（Cloudflare Workers Static Assets）
-# 部署：  wrangler deploy --config wrangler-unified.toml
+# 部署：  ./deploy.ps1   （Windows PowerShell）或  ./deploy.sh   （Git Bash / macOS / Linux）
+#        部署脚本会：① 自动读取/创建 MT_KV 命名空间 id；② 生成本文件同名 toml；③ wrangler deploy
+#        本模板的 __MT_KV_ID__ 会被脚本替换为真实 id，无需手填，也不进仓库。
 # 说明：
 #   - 现有 Pages + baidu-mt-proxy 方案完全不受影响（本文件独立，且 cf-mt-worker.js 的 ASSETS 兜底
 #     对“未绑定 ASSETS 的翻译 Worker”会自动跳过，行为不变）。
@@ -14,12 +16,12 @@ compatibility_date = "2024-09-23"
 # 静态资产：把 public/index.html 作为站点根（非 /mt/* 请求都走这里）
 assets = { directory = "public", binding = "ASSETS" }
 
-# KV 命名空间（缓存百度 token + 限流计数，必需）
+# KV 命名空间（缓存百度 token + 限流计数，必需）；id 由部署脚本自动填入
 [[kv_namespaces]]
 binding = "MT_KV"
-id = "在此填入 wrangler kv namespace create MT_KV 返回的 id"
+id = "__MT_KV_ID__"
 
-# 百度翻译密钥：改用 secret 注入，不写进 toml、不进仓库（部署前先执行下方命令）
+# 百度翻译密钥：改用 secret 注入，不写进 toml、不进仓库（首次部署后执行一次）
 #   wrangler secret put BAIDU_API_KEY   --config wrangler-unified.toml
 #   wrangler secret put BAIDU_SECRET_KEY --config wrangler-unified.toml
 # secret 仅存于 Cloudflare，cf-mt-worker.js 仍用 env.BAIDU_API_KEY / env.BAIDU_SECRET_KEY 读取，代码无需改

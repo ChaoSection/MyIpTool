@@ -39,15 +39,17 @@ public/index.html      # 站点页面（声明式渲染，唯一页面源）
 npm i -g wrangler
 wrangler login
 
-# 2. 创建 KV 命名空间，记录返回的 id 填入 wrangler-unified.toml
-wrangler kv namespace create MT_KV
+# 2. KV 命名空间：无需手动——部署脚本会自动读取/创建 MT_KV 并填入 id
+#    （如需手动：wrangler kv namespace create MT_KV，记录返回的 id）
 
-# 3. 注入百度翻译密钥（不落盘，仅存于 Cloudflare）
+# 3. 注入百度翻译密钥（不落盘，仅存于 Cloudflare，首次部署后执行一次）
 wrangler secret put BAIDU_API_KEY
 wrangler secret put BAIDU_SECRET_KEY
 
-# 4. 部署（须在仓库根目录执行，assets/main 为相对路径）
-wrangler deploy --config wrangler-unified.toml
+# 4. 部署（须在仓库根目录执行；脚本会生成 wrangler-unified.toml 并 wrangler deploy）
+#    Windows（PowerShell）：     ./deploy.ps1
+#    Git Bash / macOS / Linux：  ./deploy.sh
+#    （wrangler-unified.toml 由脚本从 .template 生成，含真实 KV id，已 gitignore，不进仓库）
 
 # 5. （可选）自定义域名：在 Cloudflare 给 ip.example.com 加路由 <worker>/* → 该 Worker
 ```
@@ -58,7 +60,7 @@ wrangler deploy --config wrangler-unified.toml
 
 | 参数 | 用途 | 获取方式 |
 |---|---|---|
-| `MT_KV` 的 id | 缓存百度 token + 限流计数（KV 绑定，必需） | Cloudflare 控制台 → Workers & Pages → 你的 Worker → 绑定里查看；或命令行 `wrangler kv namespace list` 查 `MT_KV` 的 id；首次建用 `wrangler kv namespace create MT_KV` |
+| `MT_KV` 的 id | 缓存百度 token + 限流计数（KV 绑定，必需） | **部署脚本自动完成**（自动读取；没有则自动创建），无需手动写；手动查：`wrangler kv namespace list`；手动建：`wrangler kv namespace create MT_KV` |
 | `BAIDU_API_KEY` | 百度翻译 API 鉴权 | 百度翻译开放平台 <https://fanyi-api.baidu.com/> → 控制台 → 创建应用（通用翻译服务）→ 获取 API Key |
 | `BAIDU_SECRET_KEY` | 百度翻译 API 鉴权 | 同上，与 API Key 配对获取 Secret Key |
 | Worker 名称 / 子域 | 部署后的访问地址 | `wrangler-unified.toml` 里的 `name` 决定；部署后自动分配 `<name>.<subdomain>.workers.dev`，自定义域名需在 Cloudflare DNS + Routes 配置 |

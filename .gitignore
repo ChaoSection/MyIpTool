@@ -1,0 +1,4 @@
+# 部署脚本生成的配置文件（含真实 KV id），不进仓库
+/wrangler-unified.toml
+.dev.vars
+node_modules/
