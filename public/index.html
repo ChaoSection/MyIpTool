@@ -412,15 +412,6 @@ var CN_PROV_GBT2260 = [
 var CN_PROV_ABBREV = {};
 CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
 
-/* 英文省名 -> 中文（覆盖 IP.SB 等返回英文全称的接口；美国州名已移除，改由百度翻译兜底） */
-var CN_PROV_EN = {
-  'Beijing':'北京市','Tianjin':'天津市','Hebei':'河北省','Shanxi':'山西省','Inner Mongolia':'内蒙古自治区','Liaoning':'辽宁省',
-  'Jilin':'吉林省','Heilongjiang':'黑龙江省','Shanghai':'上海市','Jiangsu':'江苏省','Zhejiang':'浙江省','Anhui':'安徽省',
-  'Fujian':'福建省','Jiangxi':'江西省','Shandong':'山东省','Henan':'河南省','Hubei':'湖北省','Hunan':'湖南省','Guangdong':'广东省',
-  'Guangxi':'广西壮族自治区','Hainan':'海南省','Chongqing':'重庆市','Sichuan':'四川省','Guizhou':'贵州省','Yunnan':'云南省',
-  'Tibet':'西藏自治区','Xizang':'西藏自治区','Shaanxi':'陕西省','Gansu':'甘肃省','Qinghai':'青海省','Ningxia':'宁夏回族自治区',
-  'Xinjiang':'新疆维吾尔自治区','Taiwan':'台湾省','Hong Kong':'香港特别行政区','Macao':'澳门特别行政区','Macau':'澳门特别行政区',
-};
 
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
@@ -433,7 +424,7 @@ function cnGeo(name, val){
   /* 省/自治区/直辖市/特别行政区：支持字母码(HA) 与 英文全称(Henan) */
   if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code' || lc === 'region'){
     _lastProv = v.toUpperCase();
-    return CN_PROV_ABBREV[_lastProv] || CN_PROV_EN[v] || v;
+    return CN_PROV_ABBREV[_lastProv] || v;
   }
   /* 城市：不再用静态表，原值交 baiduTranslateRemaining 走百度翻译（删表回退时显示英文） */
   if (lc === 'city'){ return v; }
