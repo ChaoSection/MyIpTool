@@ -17,7 +17,7 @@ assets = { directory = "public", binding = "ASSETS" }
 # KV 命名空间（缓存百度 token + 限流计数，必需）
 [[kv_namespaces]]
 binding = "MT_KV"
-id = "746674d83af946ef9e09ab02e97eb7c1"
+id = "在此填入 wrangler kv namespace create MT_KV 返回的 id"
 
 # 百度翻译密钥：改用 secret 注入，不写进 toml、不进仓库（部署前先执行下方命令）
 #   wrangler secret put BAIDU_API_KEY   --config wrangler-unified.toml
