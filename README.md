@@ -115,4 +115,3 @@ wrangler secret put BAIDU_SECRET_KEY
 └── README.md
 ```
 
-> 不进仓库的文件：`wrangler-unified.toml`（含真实 KV id）、`.dev.vars`（本地变量）。部署关系：`*.template` →（deploy.sh / build.sh 替换占位符）→ `wrangler-unified.toml` → `wrangler deploy` → Cloudflare。
