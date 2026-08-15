@@ -1,11 +1,18 @@
-# deploy.ps1 — 自动解析 MT_KV id 并部署（无需手填真实 id，也不进仓库）
+# deploy.ps1 — 自动解析 MT_KV id 与 Worker 名称并部署（无需手填真实 id，也不进仓库）
 $ErrorActionPreference = 'Stop'
 $template = 'wrangler-unified.toml.template'
 $toml = 'wrangler-unified.toml'
 
 if (-not (Test-Path $template)) { Write-Error "找不到 $template"; exit 1 }
 
-# 1) 自动获取 MT_KV id
+# 1) Worker 名称：环境变量优先，否则提示（默认 ip-toolbox）
+$name = $env:WORKER_NAME
+if (-not $name) {
+    $input = Read-Host -Prompt "Worker 名称（回车默认 ip-toolbox）"
+    $name = if ($input) { $input } else { 'ip-toolbox' }
+}
+
+# 2) 自动获取 MT_KV id
 $id = $null
 try {
     $raw = wrangler kv namespace list 2>$null
@@ -18,7 +25,7 @@ try {
     Write-Host "读取 KV 列表失败，转为尝试创建 / 手动输入"
 }
 
-# 2) 不存在则创建
+# 3) 不存在则创建
 if (-not $id) {
     try {
         $out = wrangler kv namespace create MT_KV 2>&1 | Out-String
@@ -29,17 +36,19 @@ if (-not $id) {
     }
 }
 
-# 3) 仍拿不到，请用户粘贴
+# 4) 仍拿不到，请用户粘贴
 if (-not $id) {
     $id = Read-Host -Prompt "未能自动获取 MT_KV id，请粘贴 MT_KV 命名空间 id（wrangler kv namespace list 可查）"
 }
 
 if (-not $id) { Write-Error "缺少 MT_KV id，部署中止"; exit 1 }
 
-# 4) 用模板生成 toml
-$content = (Get-Content $template -Raw) -replace '__MT_KV_ID__', $id
+# 5) 用模板生成 toml（替换名称 + KV id）
+$content = (Get-Content $template -Raw) `
+    -replace '__WORKER_NAME__', $name `
+    -replace '__MT_KV_ID__', $id
 Set-Content -Path $toml -Value $content -NoNewline
-Write-Host "已生成 $toml（MT_KV id: $id）"
+Write-Host "已生成 $toml（Worker: $name, MT_KV id: $id）"
 
-# 5) 部署
+# 6) 部署
 wrangler deploy --config $toml

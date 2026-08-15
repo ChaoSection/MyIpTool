@@ -9,7 +9,8 @@
 #   - 切生产（可选）：在 ip.example.com 区上加 Worker 路由 ip.example.com/* → ip-toolbox，
 #     即可让统一 Worker 接管整站；旧的 Pages 项目可保留作回退。
 
-name = "ip-toolbox"
+# Worker 名称：占位符，由部署脚本 / CI 变量填充；不写死，便于自定义或沿用默认名 ip-toolbox
+name = "__WORKER_NAME__"
 main = "cf-mt-worker.js"
 compatibility_date = "2024-09-23"
 
