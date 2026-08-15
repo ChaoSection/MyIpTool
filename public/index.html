@@ -445,6 +445,43 @@ var IQIYI_ISP = {
   'CMNET':'中国移动','CMCC':'中国移动','CT':'中国电信','CUCC':'中国联通','CNC':'中国联通',
   'CERNET':'教育网','CRTC':'铁通','CTT':'电信','CUC':'联通','Tietong':'铁通'
 };
+/* 爱奇艺省份拼音(驼峰) -> 中文（静态表；未收录回退原码，不误译） */
+var IQIYI_PROV = {
+  'BeiJing':'北京市','TianJin':'天津市','HeBei':'河北省','ShanXi':'山西省','NeiMongol':'内蒙古自治区',
+  'LiaoNing':'辽宁省','JiLin':'吉林省','HeiLongJiang':'黑龙江省','ShangHai':'上海市','JiangSu':'江苏省',
+  'ZheJiang':'浙江省','AnHui':'安徽省','FuJian':'福建省','JiangXi':'江西省','ShanDong':'山东省',
+  'HeNan':'河南省','HuBei':'湖北省','HuNan':'湖南省','GuangDong':'广东省','GuangXi':'广西壮族自治区',
+  'HaiNan':'海南省','ChongQing':'重庆市','SiChuan':'四川省','GuiZhou':'贵州省','YunNan':'云南省',
+  'XiZang':'西藏自治区','ShaanXi':'陕西省','GanSu':'甘肃省','QingHai':'青海省','NingXia':'宁夏回族自治区',
+  'XinJiang':'新疆维吾尔自治区','TaiWan':'台湾省','XiangGang':'香港特别行政区','AoMen':'澳门特别行政区'
+};
+/* 爱奇艺城市拼音(驼峰) -> 中文（静态表；未收录回退原码，不误译） */
+var IQIYI_CITY = {
+  'BeiJing':'北京市','ShangHai':'上海市','TianJin':'天津市','ChongQing':'重庆市','GuangZhou':'广州市',
+  'ShenZhen':'深圳市','HangZhou':'杭州市','ChengDu':'成都市','WuHan':'武汉市','XiAn':'西安市',
+  'NanJing':'南京市','SuZhou':'苏州市','QingDao':'青岛市','JiNan':'济南市','ChangSha':'长沙市',
+  'ShenYang':'沈阳市','DaLian':'大连市','KunMing':'昆明市','HeFei':'合肥市','FuZhou':'福州市',
+  'Xiamen':'厦门市','NanChang':'南昌市','GuiYang':'贵阳市','NanNing':'南宁市','HaiKou':'海口市',
+  'LanZhou':'兰州市','YinChuan':'银川市','XiNing':'西宁市','WuLuMuQi':'乌鲁木齐市','LaSa':'拉萨市',
+  'HuHeHaoTe':'呼和浩特市','ShiJiaZhuang':'石家庄市','TaiYuan':'太原市','ChangChun':'长春市','HaErBin':'哈尔滨市',
+  'ZhengZhou':'郑州市'
+};
+/* 运营商/组织英文名 -> 中文（静态兜底，百度 Worker 失效/404 时仍生效；未收录回退英文） */
+var CN_ISP = {
+  'China Mobile':'中国移动','China Telecom':'中国电信','China Unicom':'中国联通',
+  'CMCC':'中国移动','CMNET':'中国移动','CT':'中国电信','CUCC':'中国联通','CNC':'中国联通',
+  'China TieTong':'铁通','CRTC':'铁通',
+  'Google LLC':'谷歌','Google':'谷歌','Alphabet':'谷歌',
+  'Amazon.com':'亚马逊','Amazon':'亚马逊','Amazon Web Services':'AWS','AWS':'AWS',
+  'Cloudflare':'Cloudflare','Microsoft Corporation':'微软','Microsoft':'微软',
+  'Tencent':'腾讯','Tencent Cloud':'腾讯云','Alibaba':'阿里','Alibaba Cloud':'阿里云',
+  'Comcast':'康卡斯特','Verizon':'威瑞森','AT&T':'AT&T','T-Mobile':'T-Mobile','Sprint':'Sprint',
+  'DigitalOcean':'DigitalOcean','Oracle':'甲骨文','IBM':'IBM','Apple':'苹果','Meta Platforms':'Meta','Meta':'Meta',
+  'Facebook':'脸书','Linode':'Linode','Vultr':'Vultr','Hetzner':'Hetzner','OVH':'OVH',
+  'Level 3':'Level 3','Cogent':'Cogent','NTT':'NTT','SoftBank':'软银','KDDI':'KDDI',
+  'Deutsche Telekom':'德国电信','Orange':'Orange','Vodafone':'沃达丰','BT':'英国电信','British Telecom':'英国电信',
+  'Telstra':'澳洲电信','Singtel':'新加坡电信','CERNET':'教育网','China Education and Research Network':'教育网'
+};
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
 function cnGeo(name, val){
@@ -593,7 +630,7 @@ var DERIVE = {
       .join(' ').replace(/\s+/g, ' ').trim();
   },
   /* 爱奇艺：t = "CMNET|HeNan_ZhengZhou-111.6.193.195" => [ISP码]|[省_市拼音]-[IP]
-   * 地址直接用拼音（HeNan_ZhengZhou），中文由百度翻译兜底（baiduTranslateRemaining 已全局运行），去除静态映射避免误译 */
+   * 地址用静态表直接转中文（HeNan_ZhengZhou -> 河南_郑州），零依赖、不误译；百度 Worker 失效时仍显示中文 */
   'src-iqiyi': function(d){
     var t = d.t;
     if (!t || typeof t !== 'string') return;
@@ -604,7 +641,10 @@ var DERIVE = {
     var geo = (m[0] || '').trim();          /* 省_市 拼音（可能仅省，如 HeNan） */
     var ip = m.slice(1).join('-').trim();
     d.iqiyi_isp = IQIYI_ISP[ispCode] || ispCode;
-    d.iqiyi_addr = geo;                     /* 拼音：HeNan_ZhengZhou，百度翻译补全中文 */
+    var seg = geo.split('_');              /* HeNan_ZhengZhou -> [HeNan, ZhengZhou] */
+    var pZh = IQIYI_PROV[seg[0]] || seg[0] || '';
+    var cZh = seg[1] ? (IQIYI_CITY[seg[1]] || seg[1]) : '';
+    d.iqiyi_addr = [pZh, cZh].filter(Boolean).join('_');  /* 河南_郑州，静态表零依赖 */
     d.iqiyi_ip = ip;
   }
 };
@@ -670,6 +710,10 @@ async function baiduTranslateRemaining(){
     ms.forEach(function(w){
       w = w.trim();
       if (w.length < 2) return;
+      if (CN_ISP[w]){   /* 静态表命中：直接替换，不依赖 Worker（Worker 404 时仍生效） */
+        if (el.textContent.indexOf(w) > -1) el.textContent = el.textContent.split(w).join(CN_ISP[w]);
+        return;
+      }
       if (!tokenMap[w]){ tokenMap[w] = []; tokens.push(w); }
       tokenMap[w].push(el);
     });
