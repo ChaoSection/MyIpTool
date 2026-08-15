@@ -412,6 +412,28 @@ var CN_PROV_GBT2260 = [
 var CN_PROV_ABBREV = {};
 CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
 
+/* 运营商简称静态表：ISP 码 / 英文全称 -> 中文简称（零调用、即时；不依赖百度 Worker）
+ * 用于把运营商字段（爱奇艺 ISP 码、IP.SB/Hsselite 等英文全称）翻成中文简称。
+ * 既含整词组（"China Telecom"），也含单词兜底（"Telecom"）；噪声词(LLC/Inc/com...)映射空串以剔除。 */
+var CN_ISP_ABBR = {
+  // 爱奇艺 ISP 码
+  'CMNET':'移动','CMCC':'移动','CUCC':'联通','CTCC':'电信','CRTC':'铁通','CBN':'广电',
+  'CTTL':'电信通','CNC':'网通','CMHK':'移动香港','CUHK':'联通香港','CNISP':'广电','SAT':'卫星','CERNET':'教育网',
+  // 英文全称（整词组）
+  'China Telecom':'电信','China Unicom':'联通','China Mobile':'移动','China TieTong':'铁通','China Satcom':'卫星','China Railcom':'铁通',
+  'Google LLC':'Google','Google Inc':'Google','Alphabet':'Google','Amazon.com':'Amazon','Amazon com':'Amazon','Amazon Inc':'Amazon',
+  'Microsoft':'微软','Cloudflare':'Cloudflare','Apple':'苹果','Meta':'Meta','Facebook':'Meta','Netflix':'Netflix','Oracle':'甲骨文','IBM':'IBM',
+  'Tencent':'腾讯','Alibaba':'阿里','Baidu':'百度','Comcast':'康卡斯特','AT&T':'AT&T','Verizon':'Verizon','Telia':'Telia',
+  'Hetzner':'Hetzner','OVH':'OVH','DigitalOcean':'DigitalOcean','Linode':'Linode','Vultr':'Vultr','SoftBank':'软银','NTT':'NTT','KDDI':'KDDI',
+  'Deutsche Telekom':'德国电信','Vodafone':'沃达丰','Orange':'Orange','Telstra':'Telstra','Singtel':'Singtel','Tata Communications':'塔塔','Level 3':'Level3','CenturyLink':'CenturyLink',
+  'Spectrum':'Spectrum','Cox':'Cox','Charter':'Charter','Cogent':'Cogent','Hurricane Electric':'HE','Google':'Google',
+  // 单词兜底
+  'Telecom':'电信','Unicom':'联通','Mobile':'移动','Communications':'通信','Communication':'通信','Network':'网络','Networks':'网络',
+  'Hosting':'主机','Solutions':'方案','Technology':'科技','Technologies':'科技','Systems':'系统','System':'系统','Digital':'数字',
+  'Data':'数据','Datacenter':'数据中心','Center':'中心','Global':'全球','International':'国际','Group':'集团','Services':'服务','Cloud':'云','Media':'媒体',
+  'Corporation':'','Corp':'','Limited':'','Ltd':'','Inc':'','LLC':'','Co':'','Company':'','Computing':'','Holdings':'','LLP':''
+};
+
 
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
@@ -571,7 +593,7 @@ var DERIVE = {
     var m = rest.split('-');
     var geo = (m[0] || '').trim();          /* 省_市 拼音（可能仅省，如 HeNan） */
     var ip = m.slice(1).join('-').trim();
-    d.iqiyi_isp = ispCode;   /* 英文 ISP 码，交给百度翻译 */
+    d.iqiyi_isp = CN_ISP_ABBR[ispCode] || ispCode;   /* 英文 ISP 码，交给百度翻译 */
     d.iqiyi_addr = geo;      /* 省_市 拼音，交给百度翻译 */
     d.iqiyi_ip = ip;
   }
@@ -631,13 +653,18 @@ async function baiduTranslateRemaining(){
     if (!t) return;
     /* ASN 字段不翻译（AS+数字 或字段模板含 asn，翻译后反而不易识别） */
     var tpl = el.getAttribute('data-tpl') || '';
-    if (tpl.toLowerCase().indexOf('asn') > -1) return;
+    var isIspSpan = /isp|llc|org|asorganization|asorg/i.test(tpl);
     if (/^AS\d+/i.test(t)) return;
     /* 提取连续英文字母组成的词组（可含空格，如 "Los Angeles"）；排除含数字/标点的片段 */
     var re = /[A-Za-z]+(?:\s+[A-Za-z]+)*/g, ms = t.match(re) || [];
     ms.forEach(function(w){
       w = w.trim();
       if (w.length < 2) return;
+      /* 运营商简称静态表：仅对运营商字段（tpl 含 isp/llc/org）做同步替换，不依赖百度 Worker */
+      if (isIspSpan && CN_ISP_ABBR[w] !== undefined){
+        el.textContent = el.textContent.split(w).join(CN_ISP_ABBR[w]);
+        return;
+      }
       if (!tokenMap[w]){ tokenMap[w] = []; tokens.push(w); }
       tokenMap[w].push(el);
     });
