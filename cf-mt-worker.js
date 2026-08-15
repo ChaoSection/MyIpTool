@@ -107,7 +107,7 @@ async function translate(env, { from, to, format, content }) {
 
 // ---- 4. 文本翻译（同步接口，把短文本 / IP 地理字段批量翻成中文，1 次调用）----
 async function translateText(env, { q, from = 'auto', to = 'zh' }) {
-  const key = 'txt:' + from + '|' + to + '|' + q;
+  const key = await hashKey(from, to, 'text', q);
   if (env.MT_KV) {
     const hit = await env.MT_KV.get(key, { type: 'json' });
     if (hit) return { ...hit, cached: true };
@@ -118,6 +118,7 @@ async function translateText(env, { q, from = 'auto', to = 'zh' }) {
     body: JSON.stringify({ q, from, to })
   });
   const j = await r.json();
+  if (j && j.error_code) throw new Error('baidu texttrans error: ' + (j.error_msg || j.error_code)); // 鉴权/限流失败上浮为 502，前端 if(!r.ok) 跳过（保留英文）
   const list = j?.result?.trans_result || [];
   const result = { results: list, cached: false };
   if (env.MT_KV && list.length) await env.MT_KV.put(key, JSON.stringify(result), { expirationTtl: 7 * 86400 }); // 缓存 7 天
@@ -136,7 +137,11 @@ export default {
     if (env.ASSETS && p !== '/mt/download' && p !== '/mt/translate' && p !== '/mt/text') {
       return env.ASSETS.fetch(request);
     }
-    const ALLOWED = env.ALLOWED_ORIGIN || 'https://ip.example.com';
+    // 允许的源：页面用相对路径 ./cf-mt-worker.js 同域调用，浏览器会带 Origin 头。
+    // 未显式配置 ALLOWED_ORIGIN 时，默认放行同域（url.origin），无需跨域白名单；
+    // 仅当显式配置且与同域不同（如允许的第三方站点）时才做跨域限制。
+    const ownOrigin = url.origin;
+    const ALLOWED = (env.ALLOWED_ORIGIN && env.ALLOWED_ORIGIN !== 'https://ip.example.com') ? env.ALLOWED_ORIGIN : ownOrigin;
     if (request.method === 'OPTIONS') return cors(new Response(null, { status: 204 }), ALLOWED);
 
     const origin = request.headers.get('Origin') || '';

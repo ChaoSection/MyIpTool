@@ -16,5 +16,6 @@ compatibility_date = "2024-09-23"
 assets = { directory = "public", binding = "ASSETS" }
 
 [vars]
-# ALLOWED_ORIGIN 可选；同域调用无需 CORS，缺省 https://ip.example.com
+# ALLOWED_ORIGIN 可选：仅当允许跨域站点调用翻译接口时才需设置（如第三方域名）。
+# 不设置时 Worker 自动放行同域（页面用相对路径 ./cf-mt-worker.js 同域调用，浏览器带 Origin 头也放行），无需跨域白名单。
 # ALLOWED_ORIGIN = "https://ip.chaosection.top"
