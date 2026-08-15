@@ -1,0 +1,20 @@
+# Cloudflare Workers 配置（由 Workers Builds 从 GitHub 自动同步部署）
+# 真实 Worker：main 同时托管静态站点(public/) + 百度翻译代理(cf-mt-worker.js)
+#
+# 之前仓库根缺本文件 → Builds 把 public/ 当作“纯静态资产”部署，
+# 导致 Worker 无 main 脚本、变量/密钥无法绑定（报“不能将变量添加到只有静态资产的 Worker”）。
+# 现补 main + assets，恢复为可绑定变量的真实 Worker。
+#
+# 运行时密钥（Worker Secrets，不进仓库，控制台一次性添加）：
+#   BAIDU_API_KEY、BAIDU_SECRET_KEY
+# 不绑定 KV 时 Worker 自动降级（翻译仍可用，仅无 7/29 天缓存与限流）。
+name = "ip-toolbox"
+main = "cf-mt-worker.js"
+compatibility_date = "2024-09-23"
+
+# 静态资产：把 public/index.html 作为站点根（非 /mt/* 请求都走这里）
+assets = { directory = "public", binding = "ASSETS" }
+
+[vars]
+# ALLOWED_ORIGIN 可选；同域调用无需 CORS，缺省 https://ip.example.com
+# ALLOWED_ORIGIN = "https://ip.chaosection.top"

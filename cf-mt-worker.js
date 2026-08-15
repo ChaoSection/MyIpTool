@@ -5,11 +5,10 @@
 //   3. 相同 from+to+内容 的结果缓存 7 天，二次翻译 0 次百度调用
 //   4. CORS 仅放行你的网站域名；每 IP 60 秒限 30 次，防盗用/滥用
 //
-// 部署步骤：
-//   wrangler kv namespace create MT_KV        # 记下返回的 id 填进 wrangler.toml
-//   wrangler secret put BAIDU_API_KEY
-//   wrangler secret put BAIDU_SECRET_KEY
-//   wrangler deploy
+// 部署步骤（Workers Builds 从 GitHub 自动同步 wrangler.toml，无需手动 deploy）：
+//   BAIDU_API_KEY、BAIDU_SECRET_KEY → 控制台 Worker Secrets 一次性添加（不进仓库）
+//   MT_KV 可选：绑定后开启 token/结果缓存；不绑定也能翻译（仅无限流与缓存）
+//   本地手动部署（可选）：wrangler kv namespace create MT_KV && wrangler secret put BAIDU_API_KEY && wrangler secret put BAIDU_SECRET_KEY && wrangler deploy
 
 const BAIDU_TOKEN_URL = 'https://aip.baidubce.com/oauth/2.0/token';
 const BAIDU_CREATE    = 'https://aip.baidubce.com/rpc/2.0/mt/v3/doc-translation/create';
@@ -32,14 +31,18 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 // ---- 1. access_token 缓存（省去重复获取）----
 async function getToken(env) {
-  const cached = await env.MT_KV.get('baidu_mt_token', { type: 'json' });
-  if (cached && cached.expire > Date.now()) return cached.token;
+  if (env.MT_KV) {
+    const cached = await env.MT_KV.get('baidu_mt_token', { type: 'json' });
+    if (cached && cached.expire > Date.now()) return cached.token;
+  }
   const u = `${BAIDU_TOKEN_URL}?grant_type=client_credentials&client_id=${encodeURIComponent(env.BAIDU_API_KEY)}&client_secret=${encodeURIComponent(env.BAIDU_SECRET_KEY)}`;
   const r = await fetch(u);
   const j = await r.json();
   if (!j.access_token) throw new Error('获取 token 失败: ' + JSON.stringify(j));
   const ttl = Math.max(60, j.expires_in - 3600); // 比 30 天少 1 小时，稳妥刷新
-  await env.MT_KV.put('baidu_mt_token', JSON.stringify({ token: j.access_token, expire: Date.now() + ttl * 1000 }), { expirationTtl: ttl });
+  if (env.MT_KV) {
+    await env.MT_KV.put('baidu_mt_token', JSON.stringify({ token: j.access_token, expire: Date.now() + ttl * 1000 }), { expirationTtl: ttl });
+  }
   return j.access_token;
 }
 
@@ -52,6 +55,7 @@ async function hashKey(from, to, format, content) {
 
 // ---- 3. 简易限流（每 IP 60 秒最多 30 次）----
 async function rateOK(env, ip) {
+  if (!env.MT_KV) return true;   // 未绑定 KV 时跳过限流（翻译仍可用，仅无限流保护）
   const k = 'rl:' + ip;
   const c = await env.MT_KV.get(k);
   const n = c ? parseInt(c, 10) : 0;
@@ -62,8 +66,10 @@ async function rateOK(env, ip) {
 
 async function translate(env, { from, to, format, content }) {
   const key = await hashKey(from, to, format, content);
-  const hit = await env.MT_KV.get(key, { type: 'json' });
-  if (hit) return { ...hit, cached: true };
+  if (env.MT_KV) {
+    const hit = await env.MT_KV.get(key, { type: 'json' });
+    if (hit) return { ...hit, cached: true };
+  }
 
   const token = await getToken(env);
   const cr = await fetch(`${BAIDU_CREATE}?access_token=${token}`, {
@@ -95,15 +101,17 @@ async function translate(env, { from, to, format, content }) {
     try { text = await (await fetch(file.url)).text(); } catch (_) {}
   }
   const result = { id, status, format: file.format, filename: file.filename, url: file.url, text, cached: false };
-  await env.MT_KV.put(key, JSON.stringify(result), { expirationTtl: 7 * 86400 }); // 缓存 7 天
+  if (env.MT_KV) await env.MT_KV.put(key, JSON.stringify(result), { expirationTtl: 7 * 86400 }); // 缓存 7 天
   return result;
 }
 
 // ---- 4. 文本翻译（同步接口，把短文本 / IP 地理字段批量翻成中文，1 次调用）----
 async function translateText(env, { q, from = 'auto', to = 'zh' }) {
   const key = 'txt:' + from + '|' + to + '|' + q;
-  const hit = await env.MT_KV.get(key, { type: 'json' });
-  if (hit) return { ...hit, cached: true };
+  if (env.MT_KV) {
+    const hit = await env.MT_KV.get(key, { type: 'json' });
+    if (hit) return { ...hit, cached: true };
+  }
   const token = await getToken(env);
   const r = await fetch(`${BAIDU_TEXT}?access_token=${token}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -112,7 +120,7 @@ async function translateText(env, { q, from = 'auto', to = 'zh' }) {
   const j = await r.json();
   const list = j?.result?.trans_result || [];
   const result = { results: list, cached: false };
-  if (list.length) await env.MT_KV.put(key, JSON.stringify(result), { expirationTtl: 7 * 86400 }); // 缓存 7 天
+  if (env.MT_KV && list.length) await env.MT_KV.put(key, JSON.stringify(result), { expirationTtl: 7 * 86400 }); // 缓存 7 天
   return result;
 }
 
