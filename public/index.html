@@ -345,7 +345,6 @@ var CN_COUNTRIES = {
   'Cambodia':'柬埔寨','Nepal':'尼泊尔','Kyrgyzstan':'吉尔吉斯斯坦',
   'Luxembourg':'卢森堡','Iceland':'冰岛','Estonia':'爱沙尼亚','Latvia':'拉脱维亚',
   'Lithuania':'立陶宛','Slovakia':'斯洛伐克','Slovenia':'斯洛文尼亚',
-  'Serbia':'塞尔维亚','Belarus':'白俄罗斯','Georgia':'格鲁吉亚','Armenia':'亚美尼亚',
   'Azerbaijan':'阿塞拜疆','Qatar':'卡塔尔','Kuwait':'科威特','Jordan':'约旦',
   'Lebanon':'黎巴嫩','Oman':'阿曼','Colombia':'哥伦比亚','Peru':'秘鲁',
   'Venezuela':'委内瑞拉','Ecuador':'厄瓜多尔','Uruguay':'乌拉圭',
@@ -413,7 +412,7 @@ var CN_PROV_GBT2260 = [
 var CN_PROV_ABBREV = {};
 CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
 
-/* 英文省/州名 -> 中文（覆盖 IP.SB 等返回英文全称的接口；静态表零调用，不依赖反代） */
+/* 英文省名 -> 中文（覆盖 IP.SB 等返回英文全称的接口；美国州名已移除，改由百度翻译兜底） */
 var CN_PROV_EN = {
   'Beijing':'北京市','Tianjin':'天津市','Hebei':'河北省','Shanxi':'山西省','Inner Mongolia':'内蒙古自治区','Liaoning':'辽宁省',
   'Jilin':'吉林省','Heilongjiang':'黑龙江省','Shanghai':'上海市','Jiangsu':'江苏省','Zhejiang':'浙江省','Anhui':'安徽省',
@@ -421,9 +420,6 @@ var CN_PROV_EN = {
   'Guangxi':'广西壮族自治区','Hainan':'海南省','Chongqing':'重庆市','Sichuan':'四川省','Guizhou':'贵州省','Yunnan':'云南省',
   'Tibet':'西藏自治区','Xizang':'西藏自治区','Shaanxi':'陕西省','Gansu':'甘肃省','Qinghai':'青海省','Ningxia':'宁夏回族自治区',
   'Xinjiang':'新疆维吾尔自治区','Taiwan':'台湾省','Hong Kong':'香港特别行政区','Macao':'澳门特别行政区','Macau':'澳门特别行政区',
-  'California':'加利福尼亚州','New York':'纽约州','Texas':'得克萨斯州','Florida':'佛罗里达州','Illinois':'伊利诺伊州',
-  'Washington':'华盛顿州','Massachusetts':'马萨诸塞州','Pennsylvania':'宾夕法尼亚州','Ohio':'俄亥俄州','Georgia':'佐治亚州',
-  'Michigan':'密歇根州','Arizona':'亚利桑那州','Virginia':'弗吉尼亚州','Oregon':'俄勒冈州','Nevada':'内华达州','Colorado':'科罗拉多州'
 };
 
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
