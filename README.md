@@ -115,16 +115,4 @@ wrangler secret put BAIDU_SECRET_KEY
 └── README.md
 ```
 
-### 各文件说明
-
-| 文件 | 作用 | 关键内容 / 备注 |
-|---|---|---|
-| `cf-mt-worker.js` | Cloudflare Worker 主程序 | 翻译路由 `/mt/text`、`/mt/translate`、`/mt/download`；通过 Static Assets 托管 `public/index.html`；密钥读 `env.BAIDU_API_KEY` / `env.BAIDU_SECRET_KEY`，翻译 token 与限流计数缓存到 KV 绑定 `MT_KV` |
-| `wrangler-unified.toml.template` | 统一部署配置模板 | 占位符 `__WORKER_NAME__`（Worker 名称）、`__MT_KV_ID__`（KV 命名空间 id）；部署脚本替换占位符后生成 `wrangler-unified.toml`（已 gitignore，**不进仓库**） |
-| `build.sh` | CI 自动部署脚本 | 供 Cloudflare Workers Builds（Git 集成）调用；用 Build 变量 `MT_KV_ID` / `WORKER_NAME` 替换占位符并 `npx wrangler deploy --config`；依赖控制台 Secrets（`BAIDU_API_KEY` / `BAIDU_SECRET_KEY` / `CLOUDFLARE_API_TOKEN`） |
-| `deploy.sh` | 本地部署脚本 | Git Bash / macOS / Linux 用；自动读取或创建 `MT_KV` id、提示填写 Worker 名称（默认 `ip-toolbox`），生成 toml 并 `wrangler deploy` |
-| `deploy.ps1` | 本地部署脚本 | 同上，Windows PowerShell 实现 |
-| `public/index.html` | 站点页面（唯一页面源） | 声明式渲染（`data-api` / `data-tpl`）；`BAIDU_WORKER = './cf-mt-worker.js'` 同域相对路径翻译；国家/地区中文由 `CN_COUNTRIES` / `CN_ISO2` 静态表即时翻译，百度后端缺失时保留英文 |
-| `README.md` | 项目说明文档 | 本文件 |
-
 > 不进仓库的文件：`wrangler-unified.toml`（含真实 KV id）、`.dev.vars`（本地变量）。部署关系：`*.template` →（deploy.sh / build.sh 替换占位符）→ `wrangler-unified.toml` → `wrangler deploy` → Cloudflare。
