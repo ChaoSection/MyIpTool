@@ -74,7 +74,6 @@
         <div class="box-title">UAPIs</div>
         <div class="box-info" id="src-uapis" data-api="https://uapis.cn/api/v1/network/myip">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="ip-sub">IP 段：<span data-tpl="{beginip} - {endip}">测试中...</span></div>
           <div class="f-row">地址：<span data-tpl="{region}">测试中...</span></div>
           <div class="f-row">ASN：<span data-tpl="{asn}">测试中...</span></div>
           <div class="f-row">运营商：<span data-tpl="{llc}（{isp}）">测试中...</span></div>
@@ -94,9 +93,9 @@
         <div class="box-info" id="src-bdip" data-api="https://bdip.chaosection.top/">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{IP.IP}">测试中...</span></div>
           <div class="f-row">地址：<span data-tpl="{IP.Country} {IP.Region} {IP.City}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{IP.Latitude}, {IP.Longitude}">测试中...</span></div>
           <div class="f-row">ASN：<span data-tpl="{IP.ASN}">测试中...</span></div>
           <div class="f-row">运营商：<span data-tpl="{IP.ASOrganization}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{IP.Latitude}, {IP.Longitude}">测试中...</span></div>
         </div>
       </div>
       <div class="box">
@@ -109,18 +108,38 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">多源IP</div>
-        <div class="box-info" id="src-ipspeed">
+        <div class="box-title">爱奇艺</div>
+        <div class="box-info" id="src-iqiyi" data-api="https://data.video.iqiyi.com/v.f4v">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{iqiyi_ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{iqiyi_addr}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{iqiyi_isp}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">Hsselite</div>
+        <div class="box-info" id="src-hsselite" data-api="https://www.hsselite.com/ipinfo">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country_name}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{asn} {organization}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">国内出口</div>
+        <div class="box-info" id="src-domestic">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://exservice.12306.cn/excater/bonree/grip" data-tpl="{di}">测试中...</span> <span class="src-tag">12306</span></div>
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://ipservice.ws.126.net/locate/api/getLocByIp?callback=__cbNeteaseIP" data-jsonp="__cbNeteaseIP" data-tpl="{result.ip}">测试中...</span> <span class="src-tag">网易IP服务</span></div>
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://mail.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163mail" data-jsonp="__cb163mail" data-tpl="{ip}">测试中...</span> <span class="src-tag">网易邮箱</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">海外出口</div>
+        <div class="box-info" id="src-overseas">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api.ipify.org?format=json" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipify</span></div>
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://ipinfo.io/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipinfo.io</span></div>
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv4.ip.sb/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipv4.ip.sb</span></div>
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv6.ip.sb/ip" data-plain="ip" data-tpl="{ip}">测试中...</span> <span class="src-tag">ipv6.ip.sb</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">多源IP</div>
-        <div class="box-info" id="src-ipspeed-2">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://exservice.12306.cn/excater/bonree/grip" data-tpl="{di}">测试中...</span> <span class="src-tag">12306</span></div>
         </div>
       </div>
     </div>
@@ -421,6 +440,11 @@ var CN_CITY_EN = {
   'Los Angeles':'洛杉矶','New York':'纽约','San Francisco':'旧金山','London':'伦敦','Tokyo':'东京','Singapore':'新加坡',
   'Paris':'巴黎','Sydney':'悉尼','Toronto':'多伦多','Seoul':'首尔','Moscow':'莫斯科','Chicago':'芝加哥','Boston':'波士顿','Seattle':'西雅图'
 };
+/* 爱奇艺 ISP 字母码 -> 中文（静态表；未收录回退原码，不误译） */
+var IQIYI_ISP = {
+  'CMNET':'中国移动','CMCC':'中国移动','CT':'中国电信','CUCC':'中国联通','CNC':'中国联通',
+  'CERNET':'教育网','CRTC':'铁通','CTT':'电信','CUC':'联通','Tietong':'铁通'
+};
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
 function cnGeo(name, val){
@@ -567,6 +591,21 @@ var DERIVE = {
     d.loc_addr = loc.slice(0, -1)
       .filter(function(x){ return x !== '' && x != null; })
       .join(' ').replace(/\s+/g, ' ').trim();
+  },
+  /* 爱奇艺：t = "CMNET|HeNan_ZhengZhou-111.6.193.195" => [ISP码]|[省_市拼音]-[IP]
+   * 地址直接用拼音（HeNan_ZhengZhou），中文由百度翻译兜底（baiduTranslateRemaining 已全局运行），去除静态映射避免误译 */
+  'src-iqiyi': function(d){
+    var t = d.t;
+    if (!t || typeof t !== 'string') return;
+    var parts = t.split('|');
+    var ispCode = (parts[0] || '').trim();
+    var rest = parts[1] || '';
+    var m = rest.split('-');
+    var geo = (m[0] || '').trim();          /* 省_市 拼音（可能仅省，如 HeNan） */
+    var ip = m.slice(1).join('-').trim();
+    d.iqiyi_isp = IQIYI_ISP[ispCode] || ispCode;
+    d.iqiyi_addr = geo;                     /* 拼音：HeNan_ZhengZhou，百度翻译补全中文 */
+    d.iqiyi_ip = ip;
   }
 };
 function applyDerive(el, d){ var f = DERIVE[el.id]; if (f && d && typeof d === 'object') f(d); }
