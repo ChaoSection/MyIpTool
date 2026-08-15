@@ -128,7 +128,7 @@ export default {
     if (env.ASSETS && p !== '/mt/download' && p !== '/mt/translate' && p !== '/mt/text') {
       return env.ASSETS.fetch(request);
     }
-    const ALLOWED = env.ALLOWED_ORIGIN || 'https://ip.chaosection.top';
+    const ALLOWED = env.ALLOWED_ORIGIN || 'https://ip.example.com';
     if (request.method === 'OPTIONS') return cors(new Response(null, { status: 204 }), ALLOWED);
 
     const origin = request.headers.get('Origin') || '';

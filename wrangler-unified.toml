@@ -4,7 +4,7 @@
 #   - 现有 Pages + baidu-mt-proxy 方案完全不受影响（本文件独立，且 cf-mt-worker.js 的 ASSETS 兜底
 #     对“未绑定 ASSETS 的翻译 Worker”会自动跳过，行为不变）。
 #   - 部署后默认得到 ip-toolbox.<你的子域>.workers.dev，先在子域自测，确认无误再切生产。
-#   - 切生产（可选）：在 ip.chaosection.top 区上加 Worker 路由 ip.chaosection.top/* → ip-toolbox，
+#   - 切生产（可选）：在 ip.example.com 区上加 Worker 路由 ip.example.com/* → ip-toolbox，
 #     即可让统一 Worker 接管整站；旧的 Pages 项目可保留作回退。
 
 name = "ip-toolbox"
@@ -25,5 +25,5 @@ id = "746674d83af946ef9e09ab02e97eb7c1"
 # secret 仅存于 Cloudflare，cf-mt-worker.js 仍用 env.BAIDU_API_KEY / env.BAIDU_SECRET_KEY 读取，代码无需改
 
 [vars]
-# ALLOWED_ORIGIN 可选；同域调用无需 CORS，留空默认 https://ip.chaosection.top
-# ALLOWED_ORIGIN = "https://ip.chaosection.top"
+# ALLOWED_ORIGIN 可选；同域调用无需 CORS，留空默认 https://ip.example.com
+# ALLOWED_ORIGIN = "https://ip.example.com"

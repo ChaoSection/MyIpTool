@@ -8,6 +8,10 @@
 
 在原项目完成**底层架构更新**（部署与渲染机制重构）后，本项目依据原项目的设计思路与界面风格进行了**重新实现**：保留多源 IP 探测的产品形态与交互布局，底层改为单一 Cloudflare Worker 同时托管页面与翻译接口，去掉跨域依赖、统一部署。
 
+## Demo / 在线示例
+
+实际部署示例：**<https://ip.chaosection.top/>**
+
 ## 功能
 
 - 多源 IP 探测：ipify / ipinfo.io / ipv4.ip.sb / ipv6.ip.sb / 12306 等多个数据源合并展示
@@ -45,7 +49,7 @@ wrangler secret put BAIDU_SECRET_KEY
 # 4. 部署（须在仓库根目录执行，assets/main 为相对路径）
 wrangler deploy --config wrangler-unified.toml
 
-# 5. （可选）自定义域名：在 Cloudflare 给 ip.chaosection.top 加路由 <worker>/* → 该 Worker
+# 5. （可选）自定义域名：在 Cloudflare 给 ip.example.com 加路由 <worker>/* → 该 Worker
 ```
 
 ## 如何获取部署参数
