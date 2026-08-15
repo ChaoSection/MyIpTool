@@ -394,19 +394,48 @@ var CN_PROV_GBT2260 = [
 var CN_PROV_ABBREV = {};
 CN_PROV_GBT2260.forEach(function(p){ CN_PROV_ABBREV[p.abbr] = p.name; });
 
+/* 英文省/州名 -> 中文（覆盖 IP.SB 等返回英文全称的接口；静态表零调用，不依赖反代） */
+var CN_PROV_EN = {
+  'Beijing':'北京市','Tianjin':'天津市','Hebei':'河北省','Shanxi':'山西省','Inner Mongolia':'内蒙古自治区','Liaoning':'辽宁省',
+  'Jilin':'吉林省','Heilongjiang':'黑龙江省','Shanghai':'上海市','Jiangsu':'江苏省','Zhejiang':'浙江省','Anhui':'安徽省',
+  'Fujian':'福建省','Jiangxi':'江西省','Shandong':'山东省','Henan':'河南省','Hubei':'湖北省','Hunan':'湖南省','Guangdong':'广东省',
+  'Guangxi':'广西壮族自治区','Hainan':'海南省','Chongqing':'重庆市','Sichuan':'四川省','Guizhou':'贵州省','Yunnan':'云南省',
+  'Tibet':'西藏自治区','Xizang':'西藏自治区','Shaanxi':'陕西省','Gansu':'甘肃省','Qinghai':'青海省','Ningxia':'宁夏回族自治区',
+  'Xinjiang':'新疆维吾尔自治区','Taiwan':'台湾省','Hong Kong':'香港特别行政区','Macao':'澳门特别行政区','Macau':'澳门特别行政区',
+  'California':'加利福尼亚州','New York':'纽约州','Texas':'得克萨斯州','Florida':'佛罗里达州','Illinois':'伊利诺伊州',
+  'Washington':'华盛顿州','Massachusetts':'马萨诸塞州','Pennsylvania':'宾夕法尼亚州','Ohio':'俄亥俄州','Georgia':'佐治亚州',
+  'Michigan':'密歇根州','Arizona':'亚利桑那州','Virginia':'弗吉尼亚州','Oregon':'俄勒冈州','Nevada':'内华达州','Colorado':'科罗拉多州'
+};
+/* 英文城市名 -> 中文（覆盖 IP.SB 等返回英文城市名的接口；静态表零调用，不依赖反代） */
+var CN_CITY_EN = {
+  'Beijing':'北京市','Shanghai':'上海市','Tianjin':'天津市','Chongqing':'重庆市','Shijiazhuang':'石家庄市','Tangshan':'唐山市',
+  'Taiyuan':'太原市','Hohhot':'呼和浩特市','Shenyang':'沈阳市','Dalian':'大连市','Changchun':'长春市','Harbin':'哈尔滨市',
+  'Nanjing':'南京市','Suzhou':'苏州市','Wuxi':'无锡市','Nantong':'南通市','Xuzhou':'徐州市','Yangzhou':'扬州市','Changzhou':'常州市',
+  'Hangzhou':'杭州市','Ningbo':'宁波市','Wenzhou':'温州市','Shaoxing':'绍兴市','Jiaxing':'嘉兴市','Jinhua':'金华市','Taizhou':'台州市',
+  'Hefei':'合肥市','Fuzhou':'福州市','Xiamen':'厦门市','Quanzhou':'泉州市','Zhangzhou':'漳州市','Nanchang':'南昌市','Ganzhou':'赣州市',
+  'Jinan':'济南市','Qingdao':'青岛市','Yantai':'烟台市','Weifang':'潍坊市','Linyi':'临沂市','Zibo':'淄博市','Zhengzhou':'郑州市',
+  'Luoyang':'洛阳市','Wuhan':'武汉市','Changsha':'长沙市','Guangzhou':'广州市','Shenzhen':'深圳市','Zhuhai':'珠海市','Foshan':'佛山市',
+  'Dongguan':'东莞市','Nanning':'南宁市','Haikou':'海口市','Chengdu':'成都市','Guiyang':'贵阳市','Kunming':'昆明市','Lhasa':'拉萨市',
+  'Xi\'an':'西安市','Lanzhou':'兰州市','Xining':'西宁市','Yinchuan':'银川市','Urumqi':'乌鲁木齐市','Taipei':'台北市',
+  'Hong Kong':'香港','Macao':'澳门','Macau':'澳门',
+  'Los Angeles':'洛杉矶','New York':'纽约','San Francisco':'旧金山','London':'伦敦','Tokyo':'东京','Singapore':'新加坡',
+  'Paris':'巴黎','Sydney':'悉尼','Toronto':'多伦多','Seoul':'首尔','Moscow':'莫斯科','Chicago':'芝加哥','Boston':'波士顿','Seattle':'西雅图'
+};
 /* 地理字段中文化：按字段类型选对应映射（仅匹配英文键，已中文源不误伤） */
 var _lastProv = '';
 function cnGeo(name, val){
   if (val === undefined || val === null || val === '') return val;
   var lc = String(name).split('.').pop().trim().toLowerCase();
   var v = String(val).trim();
-  /* 国家/地区静态翻译 */
+  /* 国家/地区：支持代码(CN) 与 英文全称(China) */
   if (lc === 'country' || lc === 'country_name' || lc === 'cc' || lc === 'country_code'){ return CN_COUNTRIES[v] || CN_ISO2[String(v).toUpperCase()] || v; }
-  /* 省/自治区/直辖市/特别行政区（字母码 -> 全称） */
-  if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code'){
+  /* 省/自治区/直辖市/特别行政区：支持字母码(HA) 与 英文全称(Henan) */
+  if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code' || lc === 'region'){
     _lastProv = v.toUpperCase();
-    return CN_PROV_ABBREV[_lastProv] || v;
+    return CN_PROV_ABBREV[_lastProv] || CN_PROV_EN[v] || v;
   }
+  /* 城市：英文全称 -> 中文 */
+  if (lc === 'city'){ return CN_CITY_EN[v] || v; }
   return v;
 }
 /* 自适应取值：完整路径 -> 末段字段名 -> 别名兜底 */
