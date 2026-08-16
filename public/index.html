@@ -35,19 +35,10 @@
           <br>2、IP 行按返回值自动标注 IPv4 或 IPv6，国家 / 地区 / 城市已合并为「地址」一行。
           <br>3、数据源未返回的字段会自动隐藏该行；真实反映你的出口 IP——不使用反代（反代会显示反代节点而非你的真实出口）。</div></div>
         <div class="box">
-        <div class="box-title">IP.SB · IPv4</div>
-        <div class="box-info" id="src-ipsb4" data-api="https://api-ipv4.ip.sb/geoip/">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="AS{asn} {asn_organization}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">IP.SB · IPv6</div>
-        <div class="box-info" id="src-ipsb6" data-api="https://api-ipv6.ip.sb/geoip/">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+        <div class="box-title">IP.SB</div>
+        <div class="box-info" id="src-ipsb" data-api="https://api-ipv4.ip.sb/geoip/">
+          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv6.ip.sb/geoip/" data-tpl="{ip}">测试中...</span></div>
           <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
           <div class="f-row">ASN：<span data-tpl="AS{asn} {asn_organization}">测试中...</span></div>
           <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
@@ -121,6 +112,17 @@
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
           <div class="f-row">地址：<span data-tpl="{country_name}">测试中...</span></div>
           <div class="f-row">ASN：<span data-tpl="AS{asn} {organization}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">WhatIsMyIP <span class="src-tag">v4+v6</span></div>
+        <div class="box-info" id="src-wimi" data-api="https://wimi-api-v4.whatismyip.com/app/ip" data-method="POST" data-body="{}">
+          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://wimi-api-v6.whatismyip.com/app/ip" data-method="POST" data-body="{}" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{countryName} {region} {city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{asn}">测试中...</span></div>
           <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
           <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
         </div>
@@ -435,7 +437,7 @@ function cnGeo(name, val){
   var lc = String(name).split('.').pop().trim().toLowerCase();
   var v = String(val).trim();
   /* 国家/地区：支持代码(CN) 与 英文全称(China) */
-  if (lc === 'country' || lc === 'country_name' || lc === 'cc' || lc === 'country_code'){ return CN_COUNTRIES[v] || CN_ISO2[String(v).toUpperCase()] || v; }
+  if (lc === 'country' || lc === 'country_name' || lc === 'countryname' || lc === 'cc' || lc === 'country_code'){ return CN_COUNTRIES[v] || CN_ISO2[String(v).toUpperCase()] || v; }
   /* 省/自治区/直辖市/特别行政区：支持字母码(HA) 与 英文全称(Henan) */
   if (lc === 'province_code' || lc === 'region_code' || lc === 'prov' || lc === 'state_code' || lc === 'region'){
     _lastProv = v.toUpperCase();
@@ -589,6 +591,12 @@ var DERIVE = {
     d.iqiyi_isp = CN_ISP_ABBR[ispCode] || ispCode;   /* 爱奇艺 ISP 码 -> 中文简称（命中静态表显中文，未命中回退原始码） */
     d.iqiyi_addr = geo;      /* 省_市 拼音，交给百度翻译 */
     d.iqiyi_ip = ip;
+  },
+  /* WhatIsMyIP（wimi-api-v4/v6）：响应包在 data 下，提到顶层供模板直接取；v4/v6 同源双栈，地理一致 */
+  'src-wimi': function(d){
+    if (d && d.data && typeof d.data === 'object'){
+      for (var k in d.data){ if (Object.prototype.hasOwnProperty.call(d.data, k)) d[k] = d.data[k]; }
+    }
   }
 };
 function applyDerive(el, d){ var f = DERIVE[el.id]; if (f && d && typeof d === 'object') f(d); }
@@ -618,14 +626,27 @@ function fetchJson(url, opt){
   if (typeof AbortController !== 'undefined' && typeof fetch !== 'undefined'){
     var ac = new AbortController();
     var t = setTimeout(function(){ ac.abort(); }, REQ_TIMEOUT);
-    return fetch(url, { signal: ac.signal }).then(function(r){ clearTimeout(t); return r.text(); })
+    var fopt = { signal: ac.signal };
+    /* POST 型源（如 whatismyip）：带 method/body，其余走默认 GET */
+    if (opt.method && String(opt.method).toUpperCase() === 'POST'){
+      fopt.method = 'POST';
+      fopt.headers = { 'Content-Type': 'application/json' };
+      fopt.body = (opt.body != null) ? opt.body : '{}';
+    }
+    return fetch(url, fopt).then(function(r){ clearTimeout(t); return r.text(); })
       .then(function(txt){ return safeJson(txt) || {}; });
   }
-  if (typeof axios !== 'undefined') return axios.get(url, { timeout: REQ_TIMEOUT }).then(function(r){ return r.data; });
+  if (typeof axios !== 'undefined'){
+    if (opt.method && String(opt.method).toUpperCase() === 'POST'){
+      return axios.post(url, safeJson(opt.body || '{}'), { timeout: REQ_TIMEOUT }).then(function(r){ return r.data; });
+    }
+    return axios.get(url, { timeout: REQ_TIMEOUT }).then(function(r){ return r.data; });
+  }
   return Promise.reject(new Error('no fetch'));
 }
 function spanOpt(span){
-  return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), plain: span.getAttribute('data-plain') };
+  return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), plain: span.getAttribute('data-plain'),
+           method: span.getAttribute('data-method'), body: span.getAttribute('data-body') };
 }
 /* 百度翻译兜底：把静态表未覆盖、仍是英文的地理字段批量翻成中文。
  * 静态 CN_* 表已覆盖常见国家/省/州（零调用、即时），城市/运营商等表外值此处补翻。
