@@ -652,7 +652,8 @@ function spanOpt(span){
  * 静态 CN_* 表已覆盖常见国家/省/州（零调用、即时），城市/运营商等表外值此处补翻。
  * 经 Worker（./cf-mt-worker.js/mt/text）一次调用完成，结果按内容缓存（重复加载 0 调用）。
  * BAIDU_WORKER 留空则整段跳过，退回静态表/英文，不影响页面。 */
-/* 百度翻译兜底：把归属地中的英文（省/州、城市、运营商、ASN 等）逐词组翻成中文。
+/* 百度翻译兜底：把归属地中的英文（省/州、城市、ASN 等）逐词组翻成中文。
+ * 注意：运营商(ISP)字段不在此处翻译——改由 CN_ISP_ABBR 静态表处理，未命中保留英文原值（见下方 isIspSpan 分支）。
  * 国家/地区仍由 CN_COUNTRIES / CN_ISO2 静态表即时翻译（零调用），此处不再处理国家。
  * 策略：遍历所有 f-row 内字段，提取其中"连续英文字母词组"（如 California、Los Angeles、China Unicom、Google LLC），
  *       含数字者（如 ASN 前缀 "AS4837"）不单独翻译，只翻英文部分；纯数字/坐标(IP/经纬度)不翻。
@@ -674,9 +675,11 @@ async function baiduTranslateRemaining(){
     ms.forEach(function(w){
       w = w.trim();
       if (w.length < 2) return;
-      /* 运营商简称静态表：仅对运营商字段（tpl 含 isp/llc/org）做同步替换，不依赖百度 Worker */
-      if (isIspSpan && CN_ISP_ABBR[w] !== undefined){
-        el.textContent = el.textContent.split(w).join(CN_ISP_ABBR[w]);
+      /* 运营商字段只走静态表 CN_ISP_ABBR：命中即替换为中文简称；未命中保留英文原值，
+       * 绝不送百度翻译（避免英文专有名词/公司全称被机器错译为冗长中文，如
+       * "China Telecom Corporation" -> "中国电信集团公司"）。这是修复「运营商英文被翻译」的核心。 */
+      if (isIspSpan){
+        if (CN_ISP_ABBR[w] !== undefined){ el.textContent = el.textContent.split(w).join(CN_ISP_ABBR[w]); }
         return;
       }
       if (!tokenMap[w]){ tokenMap[w] = []; tokens.push(w); }
