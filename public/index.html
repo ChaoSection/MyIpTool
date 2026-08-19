@@ -128,6 +128,46 @@
         </div>
       </div>
       <div class="box">
+        <div class="box-title">ipwho.is</div>
+        <div class="box-info" id="src-ipwho" data-api="https://ipwho.is/">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{connection.asn} {connection.org}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{connection.isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">FreeIPAPI</div>
+        <div class="box-info" id="src-freeipapi" data-api="https://freeipapi.com/api/json">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ipAddress}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{countryName} {regionName} {cityName}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="{asnLine}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">GeoJS</div>
+        <div class="box-info" id="src-geojs" data-api="https://get.geojs.io/v1/ip/geo.json">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{asn} {organization_name}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{organization_name}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">IPQuery</div>
+        <div class="box-info" id="src-ipquery" data-api="https://api.ipquery.io/?format=json">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{location.country} {location.state} {location.city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="{isp.asn} {isp.org}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp.isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{location.longitude},{location.latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
         <div class="box-title">国内出口</div>
         <div class="box-info" id="src-domestic">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-api="https://exservice.12306.cn/excater/bonree/grip" data-tpl="{di}">测试中...</span> <span class="src-tag">12306</span></div>
@@ -597,9 +637,25 @@ var DERIVE = {
     if (d && d.data && typeof d.data === 'object'){
       for (var k in d.data){ if (Object.prototype.hasOwnProperty.call(d.data, k)) d[k] = d.data[k]; }
     }
+  },
+  /* FreeIPAPI：无独立 ISP 名字段，用 asnOrganization 充当运营商（别名 isp 走 CN_ISP_ABBR 静态表）；
+   * 组装 asnLine（AS+编号+组织），避免空值出现 "AS " 残留 */
+  'src-freeipapi': function(d){
+    if (d.asnOrganization != null) d.isp = d.asnOrganization;
+    if (d.asn != null && d.asnOrganization != null) d.asnLine = 'AS' + d.asn + ' ' + d.asnOrganization;
+    else if (d.asnOrganization != null) d.asnLine = d.asnOrganization;
+  },
+  /* GeoJS.io：响应为数组 [{}]，解包首元素为对象供模板取用（applyDerive 返回值被 loadAll 采用） */
+  'src-geojs': function(d){
+    if (Array.isArray(d) && d[0] && typeof d[0] === 'object'){
+      var o = {};
+      for (var k in d[0]){ if (Object.prototype.hasOwnProperty.call(d[0], k)) o[k] = d[0][k]; }
+      return o;
+    }
+    return d;
   }
 };
-function applyDerive(el, d){ var f = DERIVE[el.id]; if (f && d && typeof d === 'object') f(d); }
+function applyDerive(el, d){ var f = DERIVE[el.id]; if (f && d && typeof d === 'object'){ var r = f(d); if (r && typeof r === 'object') return r; } return d; }
 /* JSONP：绕过 CORS，并可按 data-charset 正确解码 GBK 等编码 */
 function fetchJsonp(url, cbName, charset){
   return new Promise(function(resolve, reject){
@@ -718,7 +774,7 @@ function loadAll(){
     /* 块级容器：拉一次，回填所有未自带 data-api 的子 span */
     var kids = el.querySelectorAll('span[data-tpl]:not([data-api])');
     var p = fetchJson(el.getAttribute('data-api'), spanOpt(el))
-      .then(function(d){ applyDerive(el, d); Array.prototype.forEach.call(kids, function(sp){ fillSpan(sp, d); }); })
+      .then(function(d){ var dd = applyDerive(el, d); Array.prototype.forEach.call(kids, function(sp){ fillSpan(sp, dd); }); })
       .catch(function(){ Array.prototype.forEach.call(kids, failSpan); });
     proms.push(p);
     Array.prototype.forEach.call(el.querySelectorAll('span[data-api]'), function(s){ proms.push(loadSpanP(s)); });
