@@ -10,7 +10,7 @@
     <meta name="description" content="实时获取当前设备网络 IP 地址，支持多线路，包括中国移动、中国联通、中国电信、海外线路，以及访问谷歌等特殊网站。">
     <title>IP 工具箱</title></head>
   
-  <body><style>body { background: #ecf0f3; margin:0; padding:0; } .header{ background-color:#fff; font-size: larger; font-weight: 600; padding:10px 20px; } .title{ margin: 20px; padding: 10px; font-size: larger; font-weight: 600; line-height: 1em; } .container { display: grid; grid-gap: 5px; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); padding:10px 20px; } .box{ margin:10px; padding:20px; line-height: 2.5em; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .box-title{ font-size: larger; font-weight: 600; line-height: 1em; margin-bottom:20px; padding-left: 10px; border-left-style:solid; } .box-title img{ margin-left: 10px; width: 1em; } .box-info{ color:#242424; } .search-box{ padding:10px 30px; } .search-box input{ line-height: inherit; border: 1px solid #cdcdcd; border-radius: 5px; height: 30px; width: 50%; min-width: 100px; padding: 2px 10px; } .search-box button { margin-left: 5px; padding: 2px 20px; line-height: 2.5em; border: 0; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .search-box button:hover{ box-shadow: inset 18px 18px 30px #d1d9e6, inset -18px -18px 30px #fff; }a {color: #3273dc;cursor: pointer;text-decoration: none;}.ip-row{ font-weight:600; font-size:1.05em; display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; } .ip-lbl{ display:inline-block; } .ip-lbl[data-proto="4"]{ color:#2f6fd0; } .ip-lbl[data-proto="6"]{ color:#1f9c6b; } .ip-val{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; flex:1; min-width:0; white-space:nowrap; overflow:hidden; } .ip-sub{ color:#5b6472; font-size:smaller; line-height:2em; } .f-row{ display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; color:#242424; }
+  <body><style>body { background: #ecf0f3; margin:0; padding:0; } .header{ background-color:#fff; font-size: larger; font-weight: 600; padding:10px 20px; } .title{ margin: 20px; padding: 10px; font-size: larger; font-weight: 600; line-height: 1em; } .container { display: grid; grid-gap: 5px; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); padding:10px 20px; } .box{ margin:10px; padding:20px; line-height: 2.5em; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .box-title{ font-size: larger; font-weight: 600; line-height: 1em; margin-bottom:20px; padding-left: 10px; border-left-style:solid; } .box-title img{ margin-left: 10px; width: 1em; } .box-info{ color:#242424; } .search-box{ padding:10px 30px; } .search-box input{ line-height: inherit; border: 1px solid #cdcdcd; border-radius: 5px; height: 30px; width: 50%; min-width: 100px; padding: 2px 10px; } .search-box button { margin-left: 5px; padding: 2px 20px; line-height: 2.5em; border: 0; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .search-box button:hover{ box-shadow: inset 18px 18px 30px #d1d9e6, inset -18px -18px 30px #fff; }a {color: #3273dc;cursor: pointer;text-decoration: none;}.ip-row{ font-weight:600; display:flex; flex-wrap:wrap; align-items:baseline; } .ip-lbl{ display:inline-block; width:var(--lbl-w, 3em); text-align:justify; text-justify:inter-character; -webkit-text-align-last:justify; text-align-last:justify; flex:0 0 auto; white-space:nowrap; margin-right:0.3em; } .ip-lbl[data-proto="4"]{ color:#2f6fd0; } .ip-lbl[data-proto="6"]{ color:#1f9c6b; } .ip-val{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; flex:1; min-width:0; white-space:nowrap; overflow:hidden; } .ip-sub{ color:#5b6472; font-size:smaller; line-height:2em; } .f-row{ display:flex; flex-wrap:wrap; align-items:baseline; color:#242424; }
 .f-row > span[data-tpl], .ip-val{ flex:1; min-width:0; white-space:nowrap; overflow:hidden; }
 .f-row.clip, .ip-row.clip{ cursor:pointer; }
 .f-row.clip > span[data-tpl], .ip-row.clip > .ip-val{ -webkit-mask-image:linear-gradient(to right,#000 80%,transparent 100%); mask-image:linear-gradient(to right,#000 80%,transparent 100%); }
@@ -27,10 +27,10 @@
     <div class="container">
       <div class="box" id="search" style="display:none">
         <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" id="search-ip" data-tpl="{ip}">查询中...</span></div>
-        <div class="f-row">地址：<span id="search-addr" data-tpl="{country} {region} {city}">查询中...</span></div>
-        <div class="f-row">ASN：<span id="search-asn" data-tpl="AS{asn} {asn_organization}">查询中...</span></div>
-        <div class="f-row">运营商：<span id="search-isp" data-tpl="{isp}">查询中...</span></div>
-        <div class="f-row">经纬度：<span id="search-tude" data-tpl="{longitude},{latitude}">查询中...</span></div>
+        <div class="f-row"><span class="ip-lbl">地址</span>：<span id="search-addr" data-tpl="{country} {region} {city}">查询中...</span></div>
+        <div class="f-row"><span class="ip-lbl">ASN</span>：<span id="search-asn" data-tpl="AS{asn} {asn_organization}">查询中...</span></div>
+        <div class="f-row"><span class="ip-lbl">运营商</span>：<span id="search-isp" data-tpl="{isp}">查询中...</span></div>
+        <div class="f-row"><span class="ip-lbl">经纬度</span>：<span id="search-tude" data-tpl="{longitude},{latitude}">查询中...</span></div>
       </div>
     </div>
     <div class="title">🕵️ IP 信息</div>
@@ -545,6 +545,7 @@ function search(){
   if (term == ""){ alert("请先输入搜索 IP！"); return false; }
   var box = document.getElementById("search");
   box.style.display = "block";
+  fitLabelWidths(box);
   var spans = box.querySelectorAll('span[data-tpl]');
   queryGeoIp(term)
     .then(function(d){ Array.prototype.forEach.call(spans, function(sp){ fillSpan(sp, d); }); })
@@ -647,7 +648,8 @@ function renderCardRow(r){
     return row;
   }
   var row = document.createElement('div'); row.className = 'f-row';
-  row.appendChild(document.createTextNode(r.label + '：'));
+  var lbl = document.createElement('span'); lbl.className = 'ip-lbl'; lbl.textContent = r.label;
+  row.appendChild(lbl); row.appendChild(document.createTextNode('：'));
   var span = document.createElement('span'); span.setAttribute('data-tpl', r.tpl); span.textContent = '测试中...';
   row.appendChild(span);
   return row;
@@ -663,7 +665,26 @@ function renderIpCards(list, mount){
     box.appendChild(info); mount.appendChild(box);
   });
 }
+function fitLabelWidths(scope){
+  var containers = scope ? [scope] : Array.prototype.slice.call(document.querySelectorAll('.box-info'));
+  containers.forEach(function(info){
+    if (info.offsetParent === null) return;
+    var labels = info.querySelectorAll('.ip-lbl');
+    if (!labels.length) return;
+    Array.prototype.forEach.call(labels, function(l){ l.style.width = 'auto'; });
+    var max = 0;
+    Array.prototype.forEach.call(labels, function(l){
+      var w = l.getBoundingClientRect().width;
+      if (w > max) max = w;
+    });
+    Array.prototype.forEach.call(labels, function(l){ l.style.width = ''; });
+    info.style.setProperty('--lbl-w', (max >= 2*14 ? max : 3*14) + 'px');
+  });
+}
 renderIpCards(IP_CARDS, document.getElementById('ipInfo'));
+fitLabelWidths();
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
+window.addEventListener('load', fitLabelWidths);
 
 loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip);
 
