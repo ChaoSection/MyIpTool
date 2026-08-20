@@ -41,34 +41,6 @@
           <br>2、IP 行按返回值自动标注 IPv4 或 IPv6，国家 / 地区 / 城市已合并为「地址」一行。
           <br>3、数据源未返回的字段会自动隐藏该行；真实反映你的出口 IP——不使用反代（反代会显示反代节点而非你的真实出口）。</div></div>
       <div class="box">
-        <div class="box-title">IP.SB</div>
-        <div class="box-info" id="src-ipsb" data-api="https://api.ip.sb/geoip">
-          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv4.ip.sb/geoip" data-tpl="{ip}">测试中...</span></div>
-          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv6.ip.sb/geoip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="{asn} {asn_organization}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{organization}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{latitude},{longitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">IPInfo.io</div>
-        <div class="box-info" id="src-ipinfo" data-api="https://ipinfo.io/json">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{org}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{loc}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">MyIP.la</div>
-        <div class="box-info" id="src-myipla" data-api="https://api.myip.la/cn?json">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country_name} {province} {city}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
         <div class="box-title">ipip.net</div>
         <div class="box-info" id="src-ipipnet" data-api="https://myip.ipip.net/json">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
@@ -77,12 +49,18 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">UAPIs</div>
-        <div class="box-info" id="src-uapis" data-api="https://uapis.cn/api/v1/network/myip">
+        <div class="box-title">爱奇艺</div>
+        <div class="box-info" id="src-iqiyi" data-api="https://data.video.iqiyi.com/v.f4v">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{iqiyi_ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{iqiyi_addr}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{iqiyi_isp}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">MyIP.la</div>
+        <div class="box-info" id="src-myipla" data-api="https://api.myip.la/cn?json">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{region}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="{asn}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{llc}（{isp}）">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country_name} {province} {city}">测试中...</span></div>
           <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
         </div>
       </div>
@@ -95,16 +73,6 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">Cloudflare</div>
-        <div class="box-info" id="src-bdip" data-api="https://bdip.chaosection.top/">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{IP.IP}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{IP.Country} {IP.Region} {IP.City}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="{IP.ASN}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{IP.ASOrganization}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{IP.Latitude}, {IP.Longitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
         <div class="box-title">网易大师</div>
         <div class="box-info" id="src-163" data-api="https://dashi.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163" data-jsonp="__cb163">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
@@ -114,42 +82,22 @@
         </div>
       </div>
       <div class="box">
-        <div class="box-title">爱奇艺</div>
-        <div class="box-info" id="src-iqiyi" data-api="https://data.video.iqiyi.com/v.f4v">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{iqiyi_ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{iqiyi_addr}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{iqiyi_isp}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">Hsselite</div>
-        <div class="box-info" id="src-hsselite" data-api="https://www.hsselite.com/ipinfo">
-          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{country_name}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="AS{asn} {organization}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">WhatIsMyIP</div>
-        <div class="box-info" id="src-wimi" data-api="https://wimi-api-v4.whatismyip.com/app/ip" data-method="POST" data-body="{}">
-          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
-          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://wimi-api-v6.whatismyip.com/app/ip" data-method="POST" data-body="{}" data-tpl="{ip}">测试中...</span></div>
-          <div class="f-row">地址：<span data-tpl="{countryName} {region} {city}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="AS{asn}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
-        </div>
-      </div>
-      <div class="box">
-        <div class="box-title">ipwho.is</div>
-        <div class="box-info" id="src-ipwho" data-api="https://ipwho.is/">
+        <div class="box-title">IPInfo.io</div>
+        <div class="box-info" id="src-ipinfo" data-api="https://ipinfo.io/json">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
           <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
-          <div class="f-row">ASN：<span data-tpl="AS{connection.asn} {connection.org}">测试中...</span></div>
-          <div class="f-row">运营商：<span data-tpl="{connection.isp}">测试中...</span></div>
-          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{org}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{loc}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">Cloudflare</div>
+        <div class="box-info" id="src-bdip" data-api="https://bdip.chaosection.top/">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{IP.IP}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{IP.Country} {IP.Region} {IP.City}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="{IP.ASN}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{IP.ASOrganization}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{IP.Latitude}, {IP.Longitude}">测试中...</span></div>
         </div>
       </div>
       <div class="box">
@@ -173,6 +121,16 @@
         </div>
       </div>
       <div class="box">
+        <div class="box-title">Hsselite</div>
+        <div class="box-info" id="src-hsselite" data-api="https://www.hsselite.com/ipinfo">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country_name}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{asn} {organization}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
         <div class="box-title">IPQuery</div>
         <div class="box-info" id="src-ipquery" data-api="https://api.ipquery.io/?format=json">
           <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
@@ -180,6 +138,48 @@
           <div class="f-row">ASN：<span data-tpl="{isp.asn} {isp.org}">测试中...</span></div>
           <div class="f-row">运营商：<span data-tpl="{isp.isp}">测试中...</span></div>
           <div class="f-row">经纬度：<span data-tpl="{location.longitude},{location.latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">ipwho.is</div>
+        <div class="box-info" id="src-ipwho" data-api="https://ipwho.is/">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{connection.asn} {connection.org}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{connection.isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">UAPIs</div>
+        <div class="box-info" id="src-uapis" data-api="https://uapis.cn/api/v1/network/myip">
+          <div class="ip-row"><span class="ip-lbl">IP</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{region}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="{asn}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{llc}（{isp}）">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">IP.SB</div>
+        <div class="box-info" id="src-ipsb" data-api="https://api.ip.sb/geoip">
+          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv4.ip.sb/geoip" data-tpl="{ip}">测试中...</span></div>
+          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://api-ipv6.ip.sb/geoip" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{country} {region} {city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="{asn} {asn_organization}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{organization}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{latitude},{longitude}">测试中...</span></div>
+        </div>
+      </div>
+      <div class="box">
+        <div class="box-title">WhatIsMyIP</div>
+        <div class="box-info" id="src-wimi" data-api="https://wimi-api-v4.whatismyip.com/app/ip" data-method="POST" data-body="{}">
+          <div class="ip-row"><span class="ip-lbl">IPv4</span>：<span class="ip-val" data-role="ip" data-tpl="{ip}">测试中...</span></div>
+          <div class="ip-row"><span class="ip-lbl">IPv6</span>：<span class="ip-val" data-role="ip" data-api="https://wimi-api-v6.whatismyip.com/app/ip" data-method="POST" data-body="{}" data-tpl="{ip}">测试中...</span></div>
+          <div class="f-row">地址：<span data-tpl="{countryName} {region} {city}">测试中...</span></div>
+          <div class="f-row">ASN：<span data-tpl="AS{asn}">测试中...</span></div>
+          <div class="f-row">运营商：<span data-tpl="{isp}">测试中...</span></div>
+          <div class="f-row">经纬度：<span data-tpl="{longitude},{latitude}">测试中...</span></div>
         </div>
       </div>
       <div class="box">
