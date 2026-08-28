@@ -148,7 +148,7 @@ function cleanup(text){
              .replace(/#+/g,' ')
              .replace(/（\s*）/g,'').replace(/\(\s*\)/g,'')
              .replace(/\s*（\s*/g,'（').replace(/\s*）\s*/g,'）')
-             .replace(/^AS\s*$/,'')
+             .replace(/^AS\s*$/,'')                    /* ASN 全落空只剩前缀 */
              .replace(/\s{2,}/g,' ').trim();
 }
 /* IP 行：按返回值自动判定协议，改写标签为 IPv4 / IPv6 */
