@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   
   <head>
     <meta charset="UTF-8">
@@ -16,12 +16,13 @@
 .f-row.clip > span[data-tpl], .ip-row.clip > .ip-val{ -webkit-mask-image:linear-gradient(to right,#000 80%,transparent 100%); mask-image:linear-gradient(to right,#000 80%,transparent 100%); }
 .f-row .expfull, .ip-row .expfull{ display:none; flex-basis:100%; color:#5b6472; font-size:12px; margin-top:2px; word-break:break-all; }
 .f-row.open > span[data-tpl], .ip-row.open > .ip-val{ display:none; }
-.f-row.open .expfull, .ip-row.open .expfull{ display:block; } .src-tag{ color:#5b6472; font-size:smaller; margin-left:8px; }</style>
+.f-row.open .expfull, .ip-row.open .expfull{ display:block; } .src-tag{ color:#5b6472; font-size:smaller; margin-left:8px; } input:focus-visible, button:focus-visible, a:focus-visible{ outline:2px solid #3273dc; outline-offset:2px; }</style>
+    <noscript><div class="title">本工具需启用 JavaScript 才能查询 IP 与网络联通性。</div></noscript>
     <div class="header">IP 工具箱 <small style="float:right"><a href="/">《 回首页</a> | <a href="https://github.com/ChaoSection/MyIpTool" target="_blank">Github</a></small></div>
     <div class="title">🕵️ IP 查询</div>
     <div class="search-box">
       <form onsubmit="return search()">
-        <input type="text" id="searchInput" placeholder="输入 IP 查询，支持 IPV4 和 IPV6">
+        <input type="text" id="searchInput" aria-label="输入要查询的 IP 地址，支持 IPv4 和 IPv6" placeholder="输入 IP 查询，支持 IPV4 和 IPV6">
         <button type="submit">查询</button></form>
     </div>
     <div class="container">
@@ -42,109 +43,10 @@
           <br>3、数据源未返回的字段会自动隐藏该行；真实反映你的出口 IP——不使用反代（反代会显示反代节点而非你的真实出口）。</div></div>
     </div>
 <div class="title">🕵️ 网络联通性</div>
-    <div class="container">
+    <div class="container" id="connInfo">
       <div class="box">
         <div class="box-title">功能介绍</div>
         <div class="box-info">通过加载对应网站进行速度测试，延迟值仅供参考，实际会更小。</div></div>
-      <div class="box">
-        <div class="box-title">Google
-          <span id="google-ico"></span></div>
-        <div class="box-info" id="google">
-          <div>状态：
-            <span id="google-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="google-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">YouTube
-          <span id="youtube-ico"></span></div>
-        <div class="box-info" id="youtube">
-          <div>状态：
-            <span id="youtube-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="youtube-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">Github
-          <span id="github-ico"></span></div>
-        <div class="box-info" id="github">
-          <div>状态：
-            <span id="github-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="github-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">CloudFlare
-          <span id="cloudflare-ico"></span></div>
-        <div class="box-info" id="cloudflare">
-          <div>状态：
-            <span id="cloudflare-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="cloudflare-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">ChatGPT
-          <span id="chatgpt-ico"></span></div>
-        <div class="box-info" id="chatgpt">
-          <div>状态：
-            <span id="chatgpt-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="chatgpt-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">微信
-          <span id="wechat-ico"></span></div>
-        <div class="box-info" id="wechat">
-          <div>状态：
-            <span id="wechat-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="wechat-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">百度
-          <span id="baidu-ico"></span></div>
-        <div class="box-info" id="baidu">
-          <div>状态：
-            <span id="baidu-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="baidu-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">腾讯视频
-          <span id="vqq-ico"></span></div>
-        <div class="box-info" id="vqq">
-          <div>状态：
-            <span id="vqq-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="vqq-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">爱奇艺
-          <span id="iqiyi-ico"></span></div>
-        <div class="box-info" id="iqiyi">
-          <div>状态：
-            <span id="iqiyi-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="iqiyi-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">芒果TV
-          <span id="mgtv-ico"></span></div>
-        <div class="box-info" id="mgtv">
-          <div>状态：
-            <span id="mgtv-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="mgtv-ms">0</span>ms</div></div>
-      </div>
-      <div class="box">
-        <div class="box-title">优酷
-          <span id="youku-ico"></span></div>
-        <div class="box-info" id="youku">
-          <div>状态：
-            <span id="youku-flag">测试中...</span></div>
-          <div>延迟：
-            <span id="youku-ms">0</span>ms</div></div>
-      </div>
     </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.0/axios.min.js"></script>
 <script src="./tables.js"></script>
@@ -681,14 +583,43 @@ function fitLabelWidths(scope){
     info.style.setProperty('--lbl-w', (max >= 2*14 ? max : 3*14) + 'px');
   });
 }
+function renderConnCards(list, mount){
+  list.forEach(function(c){
+    var box = document.createElement('div'); box.className = 'box';
+    var title = document.createElement('div'); title.className = 'box-title'; title.textContent = c.title;
+    var ico = document.createElement('span'); ico.id = c.id + '-ico'; title.appendChild(ico);
+    box.appendChild(title);
+    var info = document.createElement('div'); info.className = 'box-info'; info.id = c.id;
+    var r1 = document.createElement('div'); r1.appendChild(document.createTextNode('状态：'));
+    var fl = document.createElement('span'); fl.id = c.id + '-flag'; fl.textContent = '测试中...'; r1.appendChild(fl);
+    var r2 = document.createElement('div'); r2.appendChild(document.createTextNode('延迟：'));
+    var ms = document.createElement('span'); ms.id = c.id + '-ms'; ms.textContent = '0'; r2.appendChild(ms); r2.appendChild(document.createTextNode('ms'));
+    info.appendChild(r1); info.appendChild(r2);
+    box.appendChild(info); mount.appendChild(box);
+  });
+}
+var CONN_CARDS = [
+  { id:'google', title:'Google', url:'https://www.google.com/', img:'https://www.google.com/favicon.ico' },
+  { id:'youtube', title:'YouTube', url:'https://www.youtube.com/', img:'https://www.youtube.com/favicon.ico' },
+  { id:'github', title:'Github', url:'https://github.com/', img:'https://github.com/favicon.ico' },
+  { id:'cloudflare', title:'CloudFlare', url:'https://www.cloudflare.com/', img:'https://www.cloudflare.com/favicon.ico' },
+  { id:'chatgpt', title:'ChatGPT', url:'https://chatgpt.com/', img:'https://chatgpt.com/favicon.ico' },
+  { id:'wechat', title:'微信', url:'https://weixin.qq.com/', img:'https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon64_appwx_logo.png' },
+  { id:'baidu', title:'百度', url:'https://www.baidu.com/', img:'https://www.baidu.com/favicon.ico' },
+  { id:'vqq', title:'腾讯视频', url:'https://v.qq.com/', img:'https://v.qq.com/favicon.ico' },
+  { id:'iqiyi', title:'爱奇艺', url:'https://www.iqiyi.com/', img:'https://www.iqiyi.com/favicon.ico' },
+  { id:'mgtv', title:'芒果TV', url:'https://www.mgtv.com/', img:'https://www.mgtv.com/favicon.ico' },
+  { id:'youku', title:'优酷', url:'https://www.youku.com/', img:'https://www.youku.com/favicon.ico' }
+];
 renderIpCards(IP_CARDS, document.getElementById('ipInfo'));
+renderConnCards(CONN_CARDS, document.getElementById('connInfo'));
 fitLabelWidths();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
 window.addEventListener('load', fitLabelWidths);
 
 loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip);
 
-function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();const timeout=setTimeout(()=>{handleFailure('连接超时（5秒）')},5000);function handleSuccess(){clearTimeout(timeout);const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){clearTimeout(timeout);document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store'}).then(handleSuccess).catch((err)=>{console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img=[{url:'https://weixin.qq.com/',id:'wechat',img:'https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon64_appwx_logo.png'},{url:'https://github.com/',id:'github',img:'https://github.com/favicon.ico'},{url:'https://www.cloudflare.com/',id:'cloudflare',img:'https://www.cloudflare.com/favicon.ico'},{url:'https://www.baidu.com/',id:'baidu',img:'https://www.baidu.com/favicon.ico'},{url:'https://www.youtube.com/',id:'youtube',img:'https://www.youtube.com/favicon.ico'},{url:'https://www.google.com/',id:'google',img:'https://www.google.com/favicon.ico'},{url:'https://chatgpt.com/',id:'chatgpt',img:'https://chatgpt.com/favicon.ico'},{url:'https://v.qq.com/',id:'vqq',img:'https://v.qq.com/favicon.ico'},{url:'https://www.iqiyi.com/',id:'iqiyi',img:'https://www.iqiyi.com/favicon.ico'},{url:'https://www.youku.com/',id:'youku',img:'https://www.youku.com/favicon.ico'},{url:'https://www.mgtv.com/',id:'mgtv',img:'https://www.mgtv.com/favicon.ico'},];Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
+function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();const timeout=setTimeout(()=>{handleFailure('连接超时（5秒）')},5000);function handleSuccess(){clearTimeout(timeout);const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){clearTimeout(timeout);document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store'}).then(handleSuccess).catch((err)=>{console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img = CONN_CARDS.map(function(c){ return { url: c.url, id: c.id, img: c.img }; });Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
 </script>
   </body>
 </html>
