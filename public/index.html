@@ -148,7 +148,7 @@ function cleanup(text){
              .replace(/#+/g,' ')
              .replace(/（\s*）/g,'').replace(/\(\s*\)/g,'')
              .replace(/\s*（\s*/g,'（').replace(/\s*）\s*/g,'）')
-             .replace(/^AS\s*$/,'')                    /* ASN 全落空只剩前缀 */
+             .replace(/^AS\s*$/,'')
              .replace(/\s{2,}/g,' ').trim();
 }
 /* IP 行：按返回值自动判定协议，改写标签为 IPv4 / IPv6 */
@@ -579,7 +579,9 @@ function fitLabelWidths(scope){
       if (w > max) max = w;
     });
     Array.prototype.forEach.call(labels, function(l){ l.style.width = ''; });
-    info.style.setProperty('--lbl-w', (max >= 2*14 ? max : 3*14) + 'px');
+    /* 仅写入真实测得宽度；max<=0 说明字体未就绪/瞬时隐藏（不可测），保留上一次值，
+       不再回退固定 42px。多 IP 行动态追加的 IPv4/IPv6 子标签由调用方在回填后触发重算 */
+    if (max > 0) info.style.setProperty('--lbl-w', Math.ceil(max) + 'px');
   });
 }
 function renderConnCards(list, mount){
@@ -615,8 +617,9 @@ renderConnCards(CONN_CARDS, document.getElementById('connInfo'));
 fitLabelWidths();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
 window.addEventListener('load', fitLabelWidths);
+window.addEventListener('resize', fitLabelWidths);   // 缩放/字体变化导致标签宽度改变时重算
 
-loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip);
+loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip).then(fitLabelWidths);
 
 function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();const timeout=setTimeout(()=>{handleFailure('连接超时（5秒）')},5000);function handleSuccess(){clearTimeout(timeout);const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){clearTimeout(timeout);document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store'}).then(handleSuccess).catch((err)=>{console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img = CONN_CARDS.map(function(c){ return { url: c.url, id: c.id, img: c.img }; });Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
 </script>
