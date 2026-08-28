@@ -12,6 +12,7 @@
     <meta property="og:type" content="website">
     <meta property="og:description" content="实时获取当前设备网络 IP 地址，支持多线路，包括中国移动、中国联通、中国电信、海外线路，以及访问谷歌等特殊网站。">
     <link rel="canonical" id="canonicalLink">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self' 'unsafe-inline' https://whois.pconline.com.cn https://dashi.163.com https://ipservice.ws.126.net https://mail.163.com; style-src 'unsafe-inline'; img-src 'self' https: data:; connect-src 'self' https:; font-src 'self' https:">
     <title>IP 工具箱</title></head>
   
   <body><style>body { background: #ecf0f3; margin:0; padding:0; } .header{ background-color:#fff; font-size: larger; font-weight: 600; padding:10px 20px; } .title{ margin: 20px; padding: 10px; font-size: larger; font-weight: 600; line-height: 1em; } .container { display: grid; grid-gap: 5px; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); padding:10px 20px; } .box{ margin:10px; padding:20px; line-height: 2.5em; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .box-title{ font-size: larger; font-weight: 600; line-height: 1em; margin-bottom:20px; padding-left: 10px; border-left-style:solid; } .box-title img{ margin-left: 10px; width: 1em; } .box-info{ color:#242424; } .search-box{ padding:10px 30px; } .search-box input{ line-height: inherit; border: 1px solid #cdcdcd; border-radius: 5px; height: 30px; width: 50%; min-width: 100px; padding: 2px 10px; } .search-box button { margin-left: 5px; padding: 2px 20px; line-height: 2.5em; border: 0; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .search-box button:hover{ box-shadow: inset 18px 18px 30px #d1d9e6, inset -18px -18px 30px #fff; }a {color: #3273dc;cursor: pointer;text-decoration: none;}.ip-row{ font-weight:600; display:flex; flex-wrap:wrap; align-items:baseline; } .ip-lbl{ display:inline-block; width:var(--lbl-w, 3em); text-align:justify; text-justify:inter-character; -webkit-text-align-last:justify; text-align-last:justify; flex:0 0 auto; white-space:nowrap; margin-right:0.3em; } .ip-lbl[data-proto="4"]{ color:#2f6fd0; } .ip-lbl[data-proto="6"]{ color:#1f9c6b; } .ip-val{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; flex:1; min-width:0; white-space:nowrap; overflow:hidden; } .ip-sub{ color:#5b6472; font-size:smaller; line-height:2em; } .f-row{ display:flex; flex-wrap:wrap; align-items:baseline; color:#242424; }
@@ -299,7 +300,27 @@ var DERIVE = {
     return d;
   }
 };
-function applyDerive(el, d){ var f = DERIVE[el.id]; if (f && d && typeof d === 'object'){ var r = f(d); if (r && typeof r === 'object') return r; } return d; }
+/* DERIVE 通用规则注册表（P2）：新增数据源若结构可被子规则覆盖，无需写专属函数。
+ * 仅当该源无专属 DERIVE 函数时生效（applyDerive 顺序：专属优先，通用兜底）。
+ * 规则形态：function(d, id){ 直接改 d 或 return 新对象 }，返回对象则替换。 */
+var DERIVE_RULES = [
+  /* 响应包在数组 [{}] 中：解包首元素（如 GeoJS 类） */
+  function(d){ if (Array.isArray(d) && d[0] && typeof d[0] === 'object'){ var o={}; for (var k in d[0]){ if (Object.prototype.hasOwnProperty.call(d[0],k)) o[k]=d[0][k]; } return o; } },
+  /* 响应包在 data 子对象下（如 WhatIsMyIP 类）：提升为顶层 */
+  function(d){ if (d && d.data && typeof d.data === 'object' && !Array.isArray(d.data)){ for (var k in d.data){ if (Object.prototype.hasOwnProperty.call(d.data,k)) d[k]=d.data[k]; } } }
+];
+function applyDerive(el, d){
+  var f = DERIVE[el.id];
+  if (f && d && typeof d === 'object'){
+    var r = f(d);
+    return (r && typeof r === 'object') ? r : d;   /* 专属函数优先：原地改 d 则返回 d，返回对象则替换；绝不进入通用分支 */
+  }
+  /* 无专属函数：跑通用规则兜底（现有 6 个专属源绝不走此分支，输出零回归） */
+  if (d && typeof d === 'object'){
+    for (var i=0;i<DERIVE_RULES.length;i++){ var rr = DERIVE_RULES[i](d, el.id); if (rr && typeof rr === 'object') d = rr; }
+  }
+  return d;
+}
 /* JSONP：绕过 CORS，并可按 data-charset 正确解码 GBK 等编码 */
 function fetchJsonp(url, cbName, charset){
   return new Promise(function(resolve, reject){
@@ -601,6 +622,19 @@ function renderCardRow(r){
   row.appendChild(span);
   return row;
 }
+/* IP 卡片排序：数据行数从多到少（descending）；同行数按 id 字典序稳定排序。
+ * 聚合卡 src-domestic / src-overseas 锁末两位（不进入行数排序）。返回新数组，不改原配置。 */
+function sortIpCards(list){
+  var agg = ['src-domestic', 'src-overseas'];
+  var mains = list.filter(function(c){ return agg.indexOf(c.id) < 0; });
+  var tails = list.filter(function(c){ return agg.indexOf(c.id) >= 0; });
+  mains.sort(function(a, b){
+    var ra = (a.rows ? a.rows.length : 0), rb = (b.rows ? b.rows.length : 0);
+    if (rb !== ra) return rb - ra;                       /* 行数多者在前 */
+    return a.id < b.id ? -1 : (a.id > b.id ? 1 : 0);    /* 同行数按 id 字典序 */
+  });
+  return mains.concat(tails);
+}
 function renderIpCards(list, mount){
   list.forEach(function(cfg){
     var box = document.createElement('div'); box.className = 'box';
@@ -661,7 +695,7 @@ var CONN_CARDS = [
   { id:'mgtv', title:'芒果TV', url:'https://www.mgtv.com/', img:'https://www.mgtv.com/favicon.ico' },
   { id:'youku', title:'优酷', url:'https://www.youku.com/', img:'https://www.youku.com/favicon.ico' }
 ];
-renderIpCards(IP_CARDS, document.getElementById('ipInfo'));
+renderIpCards(sortIpCards(IP_CARDS), document.getElementById('ipInfo'));
 renderConnCards(CONN_CARDS, document.getElementById('connInfo'));
 fitLabelWidths();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
