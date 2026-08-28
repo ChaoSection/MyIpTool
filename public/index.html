@@ -451,7 +451,7 @@ function search(){
   queryGeoIp(term)
     .then(function(d){ Array.prototype.forEach.call(spans, function(sp){ fillSpan(sp, d); }); })
     .catch(function(){ Array.prototype.forEach.call(spans, failSpan); })
-    .then(baiduTranslateRemaining).then(measureClip);
+    .then(baiduTranslateRemaining).then(measureClip).then(function(){ fitLabelWidths(box); });
   return false;
 }
 /* 全部内容行单行截断 + 点击展开：含 IP 行(.ip-row)与非 IP 行(.f-row)；仅溢出行加右侧渐隐遮罩(.clip)，点击整行切换 .open 在下方显示完整 */
