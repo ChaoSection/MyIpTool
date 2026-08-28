@@ -8,6 +8,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="ip,tools">
     <meta name="description" content="实时获取当前设备网络 IP 地址，支持多线路，包括中国移动、中国联通、中国电信、海外线路，以及访问谷歌等特殊网站。">
+    <meta property="og:title" content="IP 工具箱">
+    <meta property="og:type" content="website">
+    <meta property="og:description" content="实时获取当前设备网络 IP 地址，支持多线路，包括中国移动、中国联通、中国电信、海外线路，以及访问谷歌等特殊网站。">
+    <link rel="canonical" id="canonicalLink">
     <title>IP 工具箱</title></head>
   
   <body><style>body { background: #ecf0f3; margin:0; padding:0; } .header{ background-color:#fff; font-size: larger; font-weight: 600; padding:10px 20px; } .title{ margin: 20px; padding: 10px; font-size: larger; font-weight: 600; line-height: 1em; } .container { display: grid; grid-gap: 5px; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); padding:10px 20px; } .box{ margin:10px; padding:20px; line-height: 2.5em; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .box-title{ font-size: larger; font-weight: 600; line-height: 1em; margin-bottom:20px; padding-left: 10px; border-left-style:solid; } .box-title img{ margin-left: 10px; width: 1em; } .box-info{ color:#242424; } .search-box{ padding:10px 30px; } .search-box input{ line-height: inherit; border: 1px solid #cdcdcd; border-radius: 5px; height: 30px; width: 50%; min-width: 100px; padding: 2px 10px; } .search-box button { margin-left: 5px; padding: 2px 20px; line-height: 2.5em; border: 0; border-radius: 5px; box-shadow: 18px 18px 30px #d1d9e6, -18px -18px 30px #fff; } .search-box button:hover{ box-shadow: inset 18px 18px 30px #d1d9e6, inset -18px -18px 30px #fff; }a {color: #3273dc;cursor: pointer;text-decoration: none;}.ip-row{ font-weight:600; display:flex; flex-wrap:wrap; align-items:baseline; } .ip-lbl{ display:inline-block; width:var(--lbl-w, 3em); text-align:justify; text-justify:inter-character; -webkit-text-align-last:justify; text-align-last:justify; flex:0 0 auto; white-space:nowrap; margin-right:0.3em; } .ip-lbl[data-proto="4"]{ color:#2f6fd0; } .ip-lbl[data-proto="6"]{ color:#1f9c6b; } .ip-val{ font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; flex:1; min-width:0; white-space:nowrap; overflow:hidden; } .ip-sub{ color:#5b6472; font-size:smaller; line-height:2em; } .f-row{ display:flex; flex-wrap:wrap; align-items:baseline; color:#242424; }
@@ -57,6 +61,8 @@
  */
 var REQ_TIMEOUT = 10000;  /* 单个请求超时(ms) */
 var BAIDU_WORKER = './cf-mt-worker.js';     /* 百度翻译代理 Worker（相对路径：需 Cloudflare 在本页域名（即 location.hostname）上把 /cf-mt-worker.js* 路由到该 Worker，才能同域调用）；留空则不翻译，退回静态表/英文 */
+/* 规范链接：用本页域名对应的 origin 动态设置，避免硬编码部署域名 */
+var _canon = document.getElementById('canonicalLink'); if (_canon) _canon.href = location.origin + '/';
 
 function flatten(obj, prefix, out){
   out = out || {};
@@ -405,19 +411,59 @@ function loadSpanP(span){
   if (!url) return Promise.resolve();
   return fetchJson(url, spanOpt(span)).then(function(d){ fillSpan(span, d); }).catch(function(){ failSpan(span); });
 }
+/* 单卡加载（抽出自 loadAll，供懒加载复用）：块级容器拉一次回填子 span；span 级独立请求 */
+function loadBox(el){
+  if (el.tagName === 'SPAN'){ return loadSpanP(el); }
+  var kids = el.querySelectorAll('span[data-tpl]:not([data-api])');
+  var p = fetchJson(el.getAttribute('data-api'), spanOpt(el))
+    .then(function(d){ var dd = applyDerive(el, d); Array.prototype.forEach.call(kids, function(sp){ fillSpan(sp, dd); }); })
+    .catch(function(){ Array.prototype.forEach.call(kids, failSpan); });
+  Array.prototype.forEach.call(el.querySelectorAll('span[data-api]'), function(s){ p = Promise.all([p, loadSpanP(s)]); });
+  return p;
+}
+/* 错峰队列：每批 5 个、批间 ~120ms，抑制首屏 20+ 并发 */
+var _lazyQueue = [], _lazyPump = false;
+function _pump(){
+  if (_lazyPump) return;
+  if (!_lazyQueue.length){ _lazyPump = false; return; }
+  _lazyPump = true;
+  (function step(){
+    if (!_lazyQueue.length){ _lazyPump = false; return; }
+    var batch = _lazyQueue.splice(0, 5);
+    batch.forEach(function(item){ loadBox(item.el).then(item.after); });
+    setTimeout(step, 120);
+  })();
+}
+function _inView(box){
+  if (typeof box.getBoundingClientRect !== 'function') return true;
+  var r = box.getBoundingClientRect();
+  var h = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
+  return r.top < h && r.bottom > 0;
+}
 function loadAll(){
-  var proms = [];
-  Array.prototype.forEach.call(document.querySelectorAll('[data-api]'), function(el){
-    if (el.tagName === 'SPAN'){ proms.push(loadSpanP(el)); return; }
-    /* 块级容器：拉一次，回填所有未自带 data-api 的子 span */
-    var kids = el.querySelectorAll('span[data-tpl]:not([data-api])');
-    var p = fetchJson(el.getAttribute('data-api'), spanOpt(el))
-      .then(function(d){ var dd = applyDerive(el, d); Array.prototype.forEach.call(kids, function(sp){ fillSpan(sp, dd); }); })
-      .catch(function(){ Array.prototype.forEach.call(kids, failSpan); });
-    proms.push(p);
-    Array.prototype.forEach.call(el.querySelectorAll('span[data-api]'), function(s){ proms.push(loadSpanP(s)); });
+  var els = Array.prototype.slice.call(document.querySelectorAll('[data-api]'));
+  if (!('IntersectionObserver' in window)){
+    /* 兜底：无 IO 支持的旧浏览器，保持原全量并发行为 */
+    return Promise.all(els.map(loadBox));
+  }
+  var afterOne = function(){ baiduTranslateRemaining(); measureClip(); fitLabelWidths(); };
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      io.unobserve(e.target);
+      var box = e.target;
+      var targets = box.matches('[data-api]') ? [box] : Array.prototype.slice.call(box.querySelectorAll('[data-api]'));
+      targets.forEach(function(el){ _lazyQueue.push({ el: el, after: afterOne }); });
+      _pump();
+    });
+  }, { rootMargin: '200px' });
+  var first = [];
+  els.forEach(function(el){
+    var box = el.closest('.box') || el;
+    if (_inView(box)){ first.push(loadBox(el).then(afterOne)); }
+    else { io.observe(box); }
   });
-  return Promise.all(proms);
+  return Promise.all(first);
 }
 /* 搜索框归属地查询（#4 决策：保留 api.ip.sb + ipwho.is 兜底）。
  * 主源 api.ip.sb/geoip/ 实测可用且开放 CORS；失败时兜底 ipwho.is（免key、CORS开放）。
@@ -562,6 +608,8 @@ function renderIpCards(list, mount){
     var info = document.createElement('div'); info.className = 'box-info'; info.id = cfg.id;
     if (cfg.api) info.setAttribute('data-api', cfg.api);
     setCardOpt(info, cfg.opt);
+    /* CLS 防抖：按行数预留最小高度，使占位态与回填态高度接近，消除异步回填行高抖动 */
+    info.style.minHeight = ((cfg.rows ? cfg.rows.length : 1) * 2.5 + 0.5) + 'em';
     (cfg.rows || []).forEach(function(r){ info.appendChild(renderCardRow(r)); });
     box.appendChild(info); mount.appendChild(box);
   });
@@ -591,6 +639,7 @@ function renderConnCards(list, mount){
     var ico = document.createElement('span'); ico.id = c.id + '-ico'; title.appendChild(ico);
     box.appendChild(title);
     var info = document.createElement('div'); info.className = 'box-info'; info.id = c.id;
+    info.style.minHeight = (2 * 2.5 + 0.5) + 'em';   /* 连通性卡固定 2 行：状态/延迟 */
     var r1 = document.createElement('div'); r1.appendChild(document.createTextNode('状态：'));
     var fl = document.createElement('span'); fl.id = c.id + '-flag'; fl.textContent = '测试中...'; r1.appendChild(fl);
     var r2 = document.createElement('div'); r2.appendChild(document.createTextNode('延迟：'));
