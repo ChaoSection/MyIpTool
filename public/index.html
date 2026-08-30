@@ -361,28 +361,16 @@ function fetchJson(url, opt){
     return fetch(url, fopt).then(function(r){ clearTimeout(t); return r.text(); })
       .then(function(txt){ return safeJson(txt) || {}; });
   }
-  if (typeof axios !== 'undefined'){
-    if (opt.method && String(opt.method).toUpperCase() === 'POST'){
-      return axios.post(url, safeJson(opt.body || '{}'), { timeout: REQ_TIMEOUT }).then(function(r){ return r.data; });
-    }
-    return axios.get(url, { timeout: REQ_TIMEOUT }).then(function(r){ return r.data; });
-  }
   return Promise.reject(new Error('no fetch'));
 }
 function spanOpt(span){
   return { jsonp: span.getAttribute('data-jsonp'), charset: span.getAttribute('data-charset'), plain: span.getAttribute('data-plain'),
            method: span.getAttribute('data-method'), body: span.getAttribute('data-body') };
 }
-/* 百度翻译兜底：把静态表未覆盖、仍是英文的地理字段批量翻成中文。
- * 静态 CN_* 表已覆盖常见国家/省/州（零调用、即时），城市/运营商等表外值此处补翻。
- * 经 Worker（./cf-mt-worker.js/mt/text）一次调用完成，结果按内容缓存（重复加载 0 调用）。
- * BAIDU_WORKER 留空则整段跳过，退回静态表/英文，不影响页面。 */
-/* 百度翻译兜底：把归属地中的英文（省/州、城市、ASN 等）逐词组翻成中文。
- * 注意：运营商(ISP)字段不在此处翻译——改由 CN_ISP_ABBR 静态表处理，未命中保留英文原值（见下方 isIspSpan 分支）。
- * 国家/地区仍由 CN_COUNTRIES / CN_ISO2 静态表即时翻译（零调用），此处不再处理国家。
- * 策略：遍历所有 f-row 内字段，提取其中"连续英文字母词组"（如 California、Los Angeles、China Unicom、Google LLC），
- *       含数字者（如 ASN 前缀 "AS4837"）不单独翻译，只翻英文部分；纯数字/坐标(IP/经纬度)不翻。
- *       一次批量送 Worker（./cf-mt-worker.js/mt/text），结果按内容缓存。BAIDU_WORKER 留空则整段跳过。 */
+/* 百度翻译兜底：把归属地中的英文（省/州、城市等）逐词组翻成中文。
+ * 国家/地区由 CN_COUNTRIES / CN_ISO2 静态表即时翻译（零调用）；运营商(ISP)由 CN_ISP_ABBR 静态表处理（见下方 isIspSpan 分支）。
+ * 策略：遍历 f-row 内字段，提取"连续英文字母词组"（如 California、Los Angeles、China Unicom），含数字的 ASN 前缀不单独翻；纯数字/坐标不翻。
+ * 一次批量送 Worker（./cf-mt-worker.js/mt/text）。翻译后该字段 textContent 变为中文、二次提取不到英文，形成隐式去重；BAIDU_WORKER 留空则整段跳过，退回英文原值。 */
 async function baiduTranslateRemaining(){
   if (!BAIDU_WORKER) return;
   var tokenMap = {};   // 英文词组 -> [元素]
@@ -549,7 +537,7 @@ document.addEventListener('click', function(e){
   var row = e.target.closest ? e.target.closest('.f-row, .ip-row') : null;
   if (row && row.classList.contains('clip')) row.classList.toggle('open');
 });
-window.addEventListener('resize', measureClip);
+window.addEventListener('resize', function(){ fitLabelWidths(); measureClip(); });
 
 
 /* ===== IP 卡片数组绑定（v7 重构）：用数据数组生成卡片 DOM，消除重复 HTML =====
@@ -704,11 +692,12 @@ renderConnCards(CONN_CARDS, document.getElementById('connInfo'));
 fitLabelWidths();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
 window.addEventListener('load', fitLabelWidths);
-window.addEventListener('resize', fitLabelWidths);   // 缩放/字体变化导致标签宽度改变时重算
 
 loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip).then(fitLabelWidths);
 
-function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();let done=false;const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;const timeout=setTimeout(()=>{if(done)return;done=true;handleFailure('连接超时（5秒）');},5000);function handleSuccess(){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\'errimg.png\'" alt="'+id+'"/>'}function handleFailure(reason){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="errimg.png" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store',signal:(ctrl?ctrl.signal:undefined)}).then(handleSuccess).catch((err)=>{if(done)return;console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img = CONN_CARDS.map(function(c){ return { url: c.url, id: c.id, img: c.img }; });Promise.all(requests_img.map(({url,id,img})=>testWeb(url,id,img)));
+/* 连通性失败时兜底图标：内联 SVG（灰叉），不依赖外部图片，避免 404 */
+var ERR_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="%239aa0a6" stroke-width="1.5"/><path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="%239aa0a6" stroke-width="1.5" stroke-linecap="round"/></svg>');
+function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();let done=false;const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;const timeout=setTimeout(()=>{if(done)return;done=true;handleFailure('连接超时（5秒）');},5000);function handleSuccess(){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\''+ERR_ICON+'\'" alt="'+id+'"/>'}function handleFailure(reason){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="'+ERR_ICON+'" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store',signal:(ctrl?ctrl.signal:undefined)}).then(handleSuccess).catch((err)=>{if(done)return;console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img = CONN_CARDS.map(function(c){ return { url: c.url, id: c.id, img: c.img }; });requests_img.forEach(function(o){ testWeb(o.url, o.id, o.img); });
 </script>
   </body>
 </html>
