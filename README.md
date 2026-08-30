@@ -103,3 +103,39 @@ wrangler secret put BAIDU_SECRET_KEY
 │   └── index.html            # 站点页面（唯一页面源）
 └── README.md
 ```
+
+## 浏览器支持矩阵
+
+页面依赖现代 Web API：`fetch` / `Promise` / `IntersectionObserver` / `AbortController` / `async/await` / `Proxy`(无) / `WeakMap`(无)。最低支持版本如下；低于下界的浏览器会做运行时守卫（不白屏，但部分卡片不回填或连通性探测降级为 img 兜底）。
+
+| 浏览器 | 最低版本 | 说明 |
+|---|---|---|
+| Chrome / Edge | 51+（2016-07） | 全功能；`text-justify:inter-character` 两端分散生效 |
+| Firefox | 55+（2017-08） | 全功能；标签两端分散走 `-moz-text-align-last:justify` 兜底（拉丁短标签如 IP/ASN 不逐字分散，由 `--lbl-w` 统一宽度保证冒号对齐） |
+| Safari | 11+（2017-09） | 全功能；`-webkit-mask-image` 截断遮罩生效 |
+| iOS Safari | 11+ | 同 Safari |
+| Opera | 38+ | 同 Chrome |
+| IE 11 及更低 | 不支持 | 无 `fetch`/`Promise`，页面不可用（运行时守卫仅防崩溃，数据不展示） |
+
+> 标注：`IntersectionObserver` 不可用时自动回退为全量并发加载（功能不变，仅首屏并发略高）；`AbortController` 不可用时连通性探测走 `<img>` 兜底（超时仍生效）。
+
+## CSP 域名清单
+
+页面通过 `<meta http-equiv="Content-Security-Policy">` 声明白名单（详见 `public/index.html` 头部的 `default-src 'none'` 策略）。所有外链均为 HTTPS，无 HTTP 混合内容。新增数据源若涉及新域名，需同步更新此处与 `index.html` 的 CSP。
+
+| 指令 | 允许的源 | 用途 |
+|---|---|---|
+| `script-src` | `'self'` `'unsafe-inline'` + 以下 4 个 JSONP 域 | 页面脚本 + JSONP 回调脚本 |
+| | `https://whois.pconline.com.cn` | 太平洋网络（GBK 编码 JSONP） |
+| | `https://dashi.163.com` | 网易大师 JSONP |
+| | `https://ipservice.ws.126.net` | 国内出口·网易 IP 服务 JSONP |
+| | `https://mail.163.com` | 国内出口·网易邮箱 JSONP |
+| `connect-src` | `'self'` `https:` | 所有 `fetch` 数据源（ip.sb / ipinfo.io / ipify / 12306 / 百度翻译 Worker `/mt/text` 等同域相对路径等） |
+| `img-src` | `'self'` `https:` `data:` | 连通性卡 favicon + 内联 SVG 失败兜底（`data:`） |
+| `style-src` | `'unsafe-inline'` | 页面内联 `<style>` |
+| `font-src` | `'self'` `https:` | 系统字体回退 |
+| `base-uri` / `form-action` | `'self'` | 防基址劫持 / 表单外跳 |
+| `frame-ancestors` | `'none'` | 禁止被 iframe 嵌入 |
+| `object-src` | `'none'` | 禁用 `<object>`/`<embed>` |
+
+> JSONP 回调名由 `fetchJsonp` 内部自动生成（`__jp_<n>`），卡片只需声明 `jsonp:true`；服务端约定的 `?callback=xxx` 查询参数不在此列。**新增 JSONP 源必须把它所在的域名加入上表 `script-src`**，否则会被 CSP 拦截。
