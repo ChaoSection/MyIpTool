@@ -325,9 +325,12 @@ function applyDerive(el, d){
   }
   return d;
 }
-/* JSONP：绕过 CORS，并可按 data-charset 正确解码 GBK 等编码 */
-function fetchJsonp(url, cbName, charset){
+/* JSONP：绕过 CORS，并可按 data-charset 正确解码 GBK 等编码。
+ * 回调名内部自动生成唯一全局名（__jp_<n>），避免卡片属性写死导致命名冲突；卡片仅需声明 jsonp:true */
+var _jpSeq = 0;
+function fetchJsonp(url, charset){
   return new Promise(function(resolve, reject){
+    var cbName = '__jp_' + (++_jpSeq);
     var s = document.createElement('script'), done = false, prev = window[cbName];
     function clean(){ window[cbName] = prev; if (s.parentNode) s.parentNode.removeChild(s); }
     window[cbName] = function(data){ done = true; clean(); resolve(data); };
@@ -339,7 +342,7 @@ function fetchJsonp(url, cbName, charset){
 }
 function fetchJson(url, opt){
   opt = opt || {};
-  if (opt.jsonp) return fetchJsonp(url, opt.jsonp, opt.charset);
+  if (opt.jsonp) return fetchJsonp(url, opt.charset);
   /* 纯文本源（如 ipinfo.io/ip 直接返回裸 IP 文本）：取文本后包成 {ip} 供模板复用 */
   if (opt.plain && typeof fetch !== 'undefined'){
     var acp = new AbortController();
@@ -370,7 +373,8 @@ function spanOpt(span){
 /* 百度翻译兜底：把归属地中的英文（省/州、城市等）逐词组翻成中文。
  * 国家/地区由 CN_COUNTRIES / CN_ISO2 静态表即时翻译（零调用）；运营商(ISP)由 CN_ISP_ABBR 静态表处理（见下方 isIspSpan 分支）。
  * 策略：遍历 f-row 内字段，提取"连续英文字母词组"（如 California、Los Angeles、China Unicom），含数字的 ASN 前缀不单独翻；纯数字/坐标不翻。
- * 一次批量送 Worker（./cf-mt-worker.js/mt/text）。翻译后该字段 textContent 变为中文、二次提取不到英文，形成隐式去重；BAIDU_WORKER 留空则整段跳过，退回英文原值。 */
+ * 一次批量送 Worker（./cf-mt-worker.js/mt/text）；结果按英文词缓存（_mtCache），二次加载命中直接回填、不发 Worker，省配额。BAIDU_WORKER 留空则整段跳过，退回英文原值。 */
+var _mtCache = {};   // 英文词组 -> 中文（命中直接回填，不发 Worker）
 async function baiduTranslateRemaining(){
   if (!BAIDU_WORKER) return;
   var tokenMap = {};   // 英文词组 -> [元素]
@@ -388,13 +392,12 @@ async function baiduTranslateRemaining(){
     ms.forEach(function(w){
       w = w.trim();
       if (w.length < 2) return;
-      /* 运营商字段只走静态表 CN_ISP_ABBR：命中即替换为中文简称；未命中保留英文原值，
-       * 绝不送百度翻译（避免英文专有名词/公司全称被机器错译为冗长中文，如
-       * "China Telecom Corporation" -> "中国电信集团公司"）。这是修复「运营商英文被翻译」的核心。 */
       if (isIspSpan){
         if (CN_ISP_ABBR[w] !== undefined){ el.textContent = el.textContent.split(w).join(CN_ISP_ABBR[w]); }
         return;
       }
+      /* 翻译缓存命中：直接回填，不发 Worker */
+      if (_mtCache[w] !== undefined){ if (el.textContent.indexOf(w) > -1) el.textContent = el.textContent.split(w).join(_mtCache[w]); return; }
       if (!tokenMap[w]){ tokenMap[w] = []; tokens.push(w); }
       tokenMap[w].push(el);
     });
@@ -413,6 +416,7 @@ async function baiduTranslateRemaining(){
       var item = list[i];
       var zh = item && item.dst ? item.dst.trim() : '';
       if (!zh || zh === tok) return;
+      _mtCache[tok] = zh;   // 写入缓存，二次加载命中直接回填
       Array.prototype.forEach.call(tokenMap[tok], function(el){
         if (el.textContent.indexOf(tok) > -1) el.textContent = el.textContent.split(tok).join(zh);
       });
@@ -489,16 +493,21 @@ function normalizeIpwho(d){
     asn: '', asn_organization: '', isp: ''
   };
 }
+/* 搜索源配置化（P5）：依次尝试，任一有效即采用；加搜索源 = 加数组项，无需改函数体。
+ * api: 查询接口；normalize: 可选，把响应规整为 {ip,country,region,city,longitude,latitude,...} 统一字段 */
+var SEARCH_SOURCES = [
+  { api: function(ip){ return "https://api.ip.sb/geoip/" + ip; } },
+  { api: function(ip){ return "https://ipwho.is/" + ip; }, normalize: normalizeIpwho }
+];
 function queryGeoIp(term){
   var ip = encodeURIComponent(term);
-  return fetchJson("https://api.ip.sb/geoip/" + ip)
-    .then(function(d){ if (!isValidGeo(d)) throw new Error('primary source invalid'); return d; })
-    .catch(function(){
-      return fetchJson("https://ipwho.is/" + ip).then(function(d){
-        if (!isValidGeo(d)) throw new Error('fallback source invalid');
-        return normalizeIpwho(d);
-      });
-    });
+  var lastErr = null;
+  return SEARCH_SOURCES.reduce(function(chain, src){
+    return chain.catch(function(){ return fetchJson(src.api(ip)).then(function(d){
+      if (!isValidGeo(d)) throw new Error('source invalid');
+      return src.normalize ? src.normalize(d) : d;
+    }).catch(function(e){ lastErr = e; throw e; }); });
+  }, Promise.reject(new Error('no search source')));
 }
 function search(){
   var term = document.getElementById("searchInput").value;
@@ -553,9 +562,9 @@ var IP_CARDS = [
     {ip:1, tpl:'{iqiyi_ip}'}, {label:'地址', tpl:'{iqiyi_addr}'}, {label:'运营商', tpl:'{iqiyi_isp}'} ] },
   { id:'src-myipla', title:'MyIP.la', api:'https://api.myip.la/cn?json', rows:[
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{country_name} {province} {city}'}, {label:'经纬度', tpl:'{longitude},{latitude}'} ] },
-  { id:'src-pconline', title:'太平洋网络', api:'https://whois.pconline.com.cn/ipJson.jsp', opt:{jsonp:'IPCallBack', charset:'gbk'}, rows:[
+  { id:'src-pconline', title:'太平洋网络', api:'https://whois.pconline.com.cn/ipJson.jsp', opt:{jsonp:true, charset:'gbk'}, rows:[
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{addr_addr}'}, {label:'运营商', tpl:'{addr_isp}'} ] },
-  { id:'src-163', title:'网易大师', api:'https://dashi.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163', opt:{jsonp:'__cb163'}, rows:[
+  { id:'src-163', title:'网易大师', api:'https://dashi.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163', opt:{jsonp:true}, rows:[
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{country} {province} {city}'}, {label:'运营商', tpl:'{isp}'}, {label:'经纬度', tpl:'{longitude},{latitude}'} ] },
   { id:'src-ipinfo', title:'IPInfo.io', api:'https://ipinfo.io/json', rows:[
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{country} {region} {city}'}, {label:'运营商', tpl:'{org}'}, {label:'经纬度', tpl:'{loc}'} ] },
@@ -583,14 +592,14 @@ var IP_CARDS = [
     {label:'地址', tpl:'{countryName} {region} {city}'}, {label:'ASN', tpl:'AS{asn}'}, {label:'运营商', tpl:'{isp}'}, {label:'经纬度', tpl:'{longitude},{latitude}'} ] },
   { id:'src-domestic', title:'国内出口', rows:[
     {ip:1, tpl:'{di}', api:'https://exservice.12306.cn/excater/bonree/grip', tag:'12306'},
-    {ip:1, tpl:'{result.ip}', api:'https://ipservice.ws.126.net/locate/api/getLocByIp?callback=__cbNeteaseIP', opt:{jsonp:'__cbNeteaseIP'}, tag:'网易IP服务'},
-    {ip:1, tpl:'{ip}', api:'https://mail.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163mail', opt:{jsonp:'__cb163mail'}, tag:'网易邮箱'} ] },
+    {ip:1, tpl:'{result.ip}', api:'https://ipservice.ws.126.net/locate/api/getLocByIp?callback=__cbNeteaseIP', opt:{jsonp:true}, tag:'网易IP服务'},
+    {ip:1, tpl:'{ip}', api:'https://mail.163.com/fgw/mailsrv-ipdetail/detail?callback=__cb163mail', opt:{jsonp:true}, tag:'网易邮箱'} ] },
   { id:'src-overseas', title:'海外出口', rows:[
     {ip:1, tpl:'{ip}', api:'https://api.ipify.org?format=json', tag:'ipify'} ] }
 ];
 function setCardOpt(el, opt){
   if (!opt) return;
-  if (opt.jsonp) el.setAttribute('data-jsonp', opt.jsonp);
+  if (opt.jsonp) el.setAttribute('data-jsonp', '1');
   if (opt.charset) el.setAttribute('data-charset', opt.charset);
   if (opt.method) el.setAttribute('data-method', opt.method);
   if (opt.body) el.setAttribute('data-body', opt.body);
