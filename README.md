@@ -125,11 +125,12 @@ wrangler secret put BAIDU_SECRET_KEY
 
 | 指令 | 允许的源 | 用途 |
 |---|---|---|
-| `script-src` | `'self'` `'unsafe-inline'` + 以下 4 个 JSONP 域 | 页面脚本 + JSONP 回调脚本 |
+| `script-src` | `'self'` `'unsafe-inline'` + 以下 4 个 JSONP 域 + Cloudflare 分析 | 页面脚本 + JSONP 回调脚本 |
 | | `https://whois.pconline.com.cn` | 太平洋网络（GBK 编码 JSONP） |
 | | `https://dashi.163.com` | 网易大师 JSONP |
 | | `https://ipservice.ws.126.net` | 国内出口·网易 IP 服务 JSONP |
 | | `https://mail.163.com` | 国内出口·网易邮箱 JSONP |
+| | `https://static.cloudflareinsights.com` | Cloudflare Web Analytics 流量分析 beacon（由 Cloudflare 边缘自动注入） |
 | `connect-src` | `'self'` `https:` | 所有 `fetch` 数据源（ip.sb / ipinfo.io / ipify / 12306 / 百度翻译 Worker `/mt/text` 等同域相对路径等） |
 | `img-src` | `'self'` `https:` `data:` | 连通性卡 favicon + 内联 SVG 失败兜底（`data:`） |
 | `style-src` | `'unsafe-inline'` | 页面内联 `<style>` |
