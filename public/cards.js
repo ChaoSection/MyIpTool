@@ -162,5 +162,28 @@ var CONN_CARDS = [
   { id:'vqq', title:'腾讯视频', url:'https://v.qq.com/', img:'https://v.qq.com/favicon.ico' },
   { id:'iqiyi', title:'爱奇艺', url:'https://www.iqiyi.com/', img:'https://www.iqiyi.com/favicon.ico' },
   { id:'mgtv', title:'芒果TV', url:'https://www.mgtv.com/', img:'https://www.mgtv.com/favicon.ico' },
-  { id:'youku', title:'优酷', url:'https://www.youku.com/', img:'https://www.youku.com/favicon.ico' }
+  { id:'youku', title:'优酷', url:'https://www.youku.com/', img:'https://www.youku.com/favicon.ico' },
+  /* ===== 第一批（A 级，2026-09-15 增补）：国内电商/短视频龙头 + 国外被墙标志站/可直连国际基准 ===== */
+  { id:'douyin', title:'抖音', url:'https://www.douyin.com/', img:'https://www.douyin.com/favicon.ico' },
+  { id:'taobao', title:'淘宝', url:'https://www.taobao.com/', img:'https://www.taobao.com/favicon.ico' },
+  { id:'bilibili', title:'哔哩哔哩', url:'https://www.bilibili.com/', img:'https://www.bilibili.com/favicon.ico' },
+  { id:'jd', title:'京东', url:'https://www.jd.com/', img:'https://www.jd.com/favicon.ico' },
+  { id:'x', title:'X(Twitter)', url:'https://x.com/', img:'https://x.com/favicon.ico' },
+  { id:'bing', title:'Bing', url:'https://www.bing.com/', img:'https://www.bing.com/favicon.ico' },
+  { id:'wikipedia', title:'维基百科', url:'https://www.wikipedia.org/', img:'https://www.wikipedia.org/favicon.ico' },
+  { id:'netflix', title:'Netflix', url:'https://www.netflix.com/', img:'https://www.netflix.com/favicon.ico' },
+  /* ===== 第二批（B 级，2026-09-15 增补）：国内支付/社交/生活 + 国外社交/社区/AI ===== */
+  { id:'alipay', title:'支付宝', url:'https://www.alipay.com/', img:'https://www.alipay.com/favicon.ico' },
+  { id:'qq', title:'QQ', url:'https://www.qq.com/', img:'https://www.qq.com/favicon.ico' },
+  { id:'kuaishou', title:'快手', url:'https://www.kuaishou.com/', img:'https://www.kuaishou.com/favicon.ico' },
+  { id:'weibo', title:'微博', url:'https://www.weibo.com/', img:'https://www.weibo.com/favicon.ico' },
+  { id:'pinduoduo', title:'拼多多', url:'https://www.pinduoduo.com/', img:'https://www.pinduoduo.com/favicon.ico' },
+  { id:'meituan', title:'美团', url:'https://www.meituan.com/', img:'https://www.meituan.com/favicon.ico' },
+  { id:'facebook', title:'Facebook', url:'https://www.facebook.com/', img:'https://www.facebook.com/favicon.ico' },
+  { id:'instagram', title:'Instagram', url:'https://www.instagram.com/', img:'https://www.instagram.com/favicon.ico' },
+  { id:'tiktok', title:'TikTok', url:'https://www.tiktok.com/', img:'https://www.tiktok.com/favicon.ico' },
+  { id:'reddit', title:'Reddit', url:'https://www.reddit.com/', img:'https://www.reddit.com/favicon.ico' },
+  { id:'linkedin', title:'LinkedIn', url:'https://www.linkedin.com/', img:'https://www.linkedin.com/favicon.ico' },
+  { id:'gemini', title:'Gemini', url:'https://gemini.google.com/', img:'https://gemini.google.com/favicon.ico' },
+  { id:'claude', title:'Claude', url:'https://claude.ai/', img:'https://claude.ai/favicon.ico' }
 ];
