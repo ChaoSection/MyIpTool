@@ -273,7 +273,15 @@ function fetchJsonp(url, charset){
     var s = document.createElement('script'), done = false, prev = window[cbName];
     function clean(){ window[cbName] = prev; if (s.parentNode) s.parentNode.removeChild(s); }
     window[cbName] = function(data){ done = true; clean(); resolve(data); };
-    s.src = url; if (charset) s.charset = charset;
+    /* 把 URL 里的 callback 参数替换为自动生成的全局名（兼容卡片写死的 callback=__cb163 等固定名），
+     * 无 callback 参数则追加；服务端回 __jp_<n>(...) 与 window.__jp_<n> 对齐，避免回调收不到导致超时。 */
+    var u;
+    if (/[?&]callback=/.test(url)) {
+      u = url.replace(/([?&])callback=[^&]+/, '$1callback=' + cbName);
+    } else {
+      u = url + (url.indexOf('?') > -1 ? '&' : '?') + 'callback=' + cbName;
+    }
+    s.src = u; if (charset) s.charset = charset;
     s.onerror = function(){ if(!done){ clean(); reject(new Error('jsonp error')); } };
     setTimeout(function(){ if(!done){ clean(); reject(new Error('jsonp timeout')); } }, REQ_TIMEOUT);
     document.head.appendChild(s);
