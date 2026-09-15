@@ -122,7 +122,7 @@ var IP_CARDS = [
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{country} {province} {city}'}, {label:'运营商', tpl:'{isp}'}, {label:'经纬度', tpl:'{longitude},{latitude}'} ] },
   { id:'src-ipinfo', title:'IPInfo.io', api:'https://ipinfo.io/json', rows:[
     {ip:1, tpl:'{ip}'}, {label:'地址', tpl:'{country} {region} {city}'}, {label:'运营商', tpl:'{org}'}, {label:'经纬度', tpl:'{loc}'} ] },
-  { id:'src-bdip', title:'Cloudflare', api:'./bdip/', rows:[
+  { id:'src-bdip', title:'Cloudflare', api:'https://bdip.chaosection.top/', rows:[
     {ip:1, tpl:'{IP.IP}'}, {label:'地址', tpl:'{IP.Country} {IP.Region} {IP.City}'}, {label:'ASN', tpl:'{IP.ASN}'}, {label:'运营商', tpl:'{IP.ASOrganization}'}, {label:'经纬度', tpl:'{IP.Latitude}, {IP.Longitude}'} ] },
   { id:'src-freeipapi', title:'FreeIPAPI', api:'https://free.freeipapi.com/api/json', rows:[
     {ip:1, tpl:'{ipAddress}'}, {label:'地址', tpl:'{countryName} {regionName} {cityName}'}, {label:'ASN', tpl:'{asnLine}'}, {label:'运营商', tpl:'{isp}'}, {label:'经纬度', tpl:'{longitude},{latitude}'} ] },
