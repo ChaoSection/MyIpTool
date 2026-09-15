@@ -188,6 +188,23 @@ export default {
       }
     }
 
+    // 出口 IP 回声（同域相对路径 ./bdip/，跨域名部署自包含；返回访客真实出口 IP + Cloudflare 边缘 geo）
+    if ((p === '/bdip' || p === '/bdip/') && request.method === 'GET') {
+      const cf = request.cf || {};
+      const ip = request.headers.get('CF-Connecting-IP') || '';
+      const data = { IP: {
+        IP: ip,
+        Country: cf.country || '',
+        Region: cf.region || '',
+        City: cf.city || '',
+        ASN: cf.asn != null ? String(cf.asn) : '',
+        AsOrganization: cf.asOrganization || '',
+        Latitude: cf.latitude != null ? String(cf.latitude) : '',
+        Longitude: cf.longitude != null ? String(cf.longitude) : ''
+      } };
+      return json(data, 200, ALLOWED);
+    }
+
     return json({ error: 'not found' }, 404, ALLOWED);
   }
 };
