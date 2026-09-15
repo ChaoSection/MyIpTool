@@ -21,9 +21,25 @@
 .f-row.clip > span[data-tpl], .ip-row.clip > .ip-val{ -webkit-mask-image:linear-gradient(to right,#000 80%,transparent 100%); mask-image:linear-gradient(to right,#000 80%,transparent 100%); }
 .f-row .expfull, .ip-row .expfull{ display:none; flex-basis:100%; color:#5b6472; font-size:12px; margin-top:2px; word-break:break-all; }
 .f-row.open > span[data-tpl], .ip-row.open > .ip-val{ display:none; }
-.f-row.open .expfull, .ip-row.open .expfull{ display:block; } .src-tag{ color:#5b6472; font-size:smaller; margin-left:8px; } input:focus-visible, button:focus-visible, a:focus-visible{ outline:2px solid #3273dc; outline-offset:2px; }</style>
+.f-row.open .expfull, .ip-row.open .expfull{ display:block; } .src-tag{ color:#5b6472; font-size:smaller; margin-left:8px; } input:focus-visible, button:focus-visible, a:focus-visible{ outline:2px solid #3273dc; outline-offset:2px; }
+.tabs{ display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:16px; padding:18px 20px 6px; }
+.tab-btn{ flex:0 0 auto; min-width:200px; display:inline-flex; align-items:center; justify-content:center; gap:10px; padding:14px 30px; font-size:17px; font-weight:700; letter-spacing:.5px; color:#5b6472; background:#e4e9ee; border:0; border-radius:14px; cursor:pointer; box-shadow: 8px 8px 16px #d1d9e6, -8px -8px 16px #fff; transition: color .18s ease, background .18s ease, box-shadow .18s ease, transform .12s ease; }
+.tab-btn:hover{ color:#3273dc; transform:translateY(-2px); box-shadow: 10px 10px 20px #d1d9e6, -10px -10px 20px #fff; }
+.tab-btn:active{ transform:translateY(0); }
+.tab-btn .tab-ico{ font-size:20px; line-height:1; filter:grayscale(.35); opacity:.8; transition: filter .18s ease, opacity .18s ease; }
+.tab-btn.active{ background:#fff; color:#3273dc; box-shadow: inset 6px 6px 12px #d1d9e6, inset -6px -6px 12px #fff; position:relative; }
+.tab-btn.active .tab-ico{ filter:none; opacity:1; }
+.tab-btn.active::after{ content:""; position:absolute; left:50%; bottom:7px; transform:translateX(-50%); width:30px; height:3px; border-radius:3px; background:#3273dc; }
+.tab-panel{ display:none; }
+.tab-panel.active{ display:block; }
+.tab-btn:focus-visible, .tab-panel:focus-visible{ outline:2px solid #3273dc; outline-offset:2px; }</style>
     <noscript><div class="title">本工具需启用 JavaScript 才能查询 IP 与网络联通性。</div></noscript>
     <div class="header">IP 工具箱 <small style="float:right"><a href="/">《 回首页</a> | <a href="https://github.com/ChaoSection/MyIpTool" target="_blank">Github</a></small></div>
+    <div class="tabs" role="tablist" aria-label="信息分类">
+      <button type="button" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-ip" id="tab-ip" data-tab="ip"><span class="tab-ico" aria-hidden="true">🕵️</span> IP 信息</button>
+      <button type="button" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-conn" id="tab-conn" data-tab="conn"><span class="tab-ico" aria-hidden="true">🌐</span> 网络联通性</button>
+    </div>
+    <section class="tab-panel active" role="tabpanel" id="panel-ip" aria-labelledby="tab-ip" data-panel="ip">
     <div class="title">🕵️ IP 查询</div>
     <div class="search-box">
       <form onsubmit="return search()">
@@ -43,16 +59,19 @@
     <div class="container" id="ipInfo">
       <div class="box">
         <div class="box-title">功能介绍</div>
-        <div class="box-info">1、多个公开数据源交叉核验你的出口 IP 与归属地，结果不一致通常说明走了代理或 CDN。
-          <br>2、IP 行按返回值自动标注 IPv4 或 IPv6，国家 / 地区 / 城市已合并为「地址」一行。
-          <br>3、数据源未返回的字段会自动隐藏该行；真实反映你的出口 IP——不使用反代（反代会显示反代节点而非你的真实出口）。</div></div>
+        <div class="box-info">1、多源交叉核验出口 IP 与归属地。
+          <br>2、自动标注 IPv4/IPv6；国家/地区/城市合并为「地址」。
+          <br>3、缺失字段自动隐藏；直连真实出口，不经反代。</div></div>
     </div>
-<div class="title">🕵️ 网络联通性</div>
+    </section>
+    <section class="tab-panel" role="tabpanel" id="panel-conn" aria-labelledby="tab-conn" data-panel="conn">
+    <div class="title">🕵️ 网络联通性</div>
     <div class="container" id="connInfo">
       <div class="box">
         <div class="box-title">功能介绍</div>
-        <div class="box-info">通过加载对应网站进行速度测试，延迟值仅供参考，实际会更小。</div></div>
+        <div class="box-info">加载网站测速，延迟仅供参考（实际更小）。</div></div>
     </div>
+    </section>
 <script src="./tables.js"></script>
 <script src="./cards.js"></script>
 <script>
@@ -377,13 +396,14 @@ function _inView(box){
   var h = window.innerHeight || (document.documentElement && document.documentElement.clientHeight) || 0;
   return r.top < h && r.bottom > 0;
 }
-function loadAll(){
-  var els = Array.prototype.slice.call(document.querySelectorAll('[data-api]'));
+function loadAll(root){
+  root = root || document;
+  var els = Array.prototype.slice.call(root.querySelectorAll('[data-api]'));
   if (!('IntersectionObserver' in window)){
     /* 兜底：无 IO 支持的旧浏览器，保持原全量并发行为 */
     return Promise.all(els.map(loadBox));
   }
-  var afterOne = function(){ baiduTranslateRemaining(); measureClip(); fitLabelWidths(); };
+  var afterOne = function(){ return baiduTranslateRemaining().then(measureClip).then(fitLabelWidths).then(equalizeIpCardHeights); };
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if (!e.isIntersecting) return;
@@ -466,7 +486,7 @@ document.addEventListener('click', function(e){
   var row = e.target.closest ? e.target.closest('.f-row, .ip-row') : null;
   if (row && row.classList.contains('clip')) row.classList.toggle('open');
 });
-window.addEventListener('resize', function(){ fitLabelWidths(); measureClip(); });
+window.addEventListener('resize', function(){ fitLabelWidths(); measureClip(); equalizeIpCardHeights(); });
 
 
 /* ===== IP 卡片数组绑定（v7 重构）：用数据数组生成卡片 DOM，消除重复 HTML =====
@@ -535,6 +555,24 @@ function fitLabelWidths(scope){
     if (max > 0) info.style.setProperty('--lbl-w', Math.ceil(max) + 'px');
   });
 }
+/* IP 卡片统一高度：加载完成后实测每张卡的「真实显示高度」（仅含未隐藏字段），
+ * 取最大值赋给全部卡片，使所有 IP 卡等高且等于信息最多的一张。
+ * 面板隐藏时 offsetHeight 为 0，max>0 守卫使其为空操作，避免误把高度清零。 */
+function equalizeIpCardHeights(){
+  var mount = document.getElementById('ipInfo');
+  if (!mount) return;
+  var infos = mount.querySelectorAll('.box-info');
+  if (!infos.length) return;
+  Array.prototype.forEach.call(infos, function(info){ info.style.minHeight = ''; });
+  var max = 0;
+  Array.prototype.forEach.call(infos, function(info){
+    var h = info.offsetHeight;
+    if (h > max) max = h;
+  });
+  if (max > 0){
+    Array.prototype.forEach.call(infos, function(info){ info.style.minHeight = max + 'px'; });
+  }
+}
 function renderConnCards(list, mount){
   list.forEach(function(c){
     var box = document.createElement('div'); box.className = 'box';
@@ -556,13 +594,35 @@ renderIpCards(sortIpCards(IP_CARDS), document.getElementById('ipInfo'));
 renderConnCards(CONN_CARDS, document.getElementById('connInfo'));
 fitLabelWidths();
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLabelWidths);
-window.addEventListener('load', fitLabelWidths);
+window.addEventListener('load', function(){ fitLabelWidths(); equalizeIpCardHeights(); });
 
-loadAll().then(baiduTranslateRemaining).catch(baiduTranslateRemaining).then(measureClip).then(fitLabelWidths);
+/* 初始加载由 activateTab('ip') 在脚本末尾触发；连通性仅在切换到对应标签页时加载 */
 
 /* 连通性失败时兜底图标：内联 SVG（灰叉），不依赖外部图片，避免 404 */
 var ERR_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 14 14"><circle cx="7" cy="7" r="6" fill="none" stroke="%239aa0a6" stroke-width="1.5"/><path d="M4.5 4.5l5 5M9.5 4.5l-5 5" stroke="%239aa0a6" stroke-width="1.5" stroke-linecap="round"/></svg>');
-function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();let done=false;const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;const timeout=setTimeout(()=>{if(done)return;done=true;handleFailure('连接超时（5秒）');},5000);function handleSuccess(){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\''+ERR_ICON+'\'" alt="'+id+'"/>'}function handleFailure(reason){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="'+ERR_ICON+'" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store',signal:(ctrl?ctrl.signal:undefined)}).then(handleSuccess).catch((err)=>{if(done)return;console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}const requests_img = CONN_CARDS.map(function(c){ return { url: c.url, id: c.id, img: c.img }; });requests_img.forEach(function(o){ testWeb(o.url, o.id, o.img); });
+function testWeb(url, id, img_path) {const startTime=performance.now();const img=new Image();let done=false;const ctrl=(typeof AbortController!=='undefined')?new AbortController():null;const timeout=setTimeout(()=>{if(done)return;done=true;handleFailure('连接超时（5秒）');},5000);function handleSuccess(){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();const endTime=performance.now();const duration=(endTime-startTime).toFixed(0);document.getElementById(id+"-flag").innerText="可用";document.getElementById(id+"-ms").innerText=Math.floor(duration);document.getElementById(id+"-ico").innerHTML='<img src="'+img_path+'" onerror="this.src=\''+ERR_ICON+'\'" alt="'+id+'"/>'}function handleFailure(reason){if(done)return;done=true;clearTimeout(timeout);if(ctrl)ctrl.abort();document.getElementById(id+"-flag").innerText="数据获取出错";document.getElementById(id+"-ico").innerHTML='<img src="'+ERR_ICON+'" alt="'+id+'"/>'}fetch(url,{mode:'no-cors',cache:'no-store',signal:(ctrl?ctrl.signal:undefined)}).then(handleSuccess).catch((err)=>{if(done)return;console.log(err);img.onload=handleSuccess;img.onerror=()=>handleFailure('无法加载网站');img.src=url})}/* 连通性逐卡重测：切换标签页时调用，重新加载延迟/状态 */
+function loadConn(){ CONN_CARDS.forEach(function(c){ testWeb(c.url, c.id, c.img); }); }
+
+/* ===== 标签页：IP 信息 / 网络联通性，切换时重新加载对应信息 ===== */
+function getPanel(name){ return document.querySelector('.tab-panel[data-panel="' + name + '"]'); }
+function activateTab(name){
+  var btns = document.querySelectorAll('.tab-btn');
+  Array.prototype.forEach.call(btns, function(b){ var on = b.getAttribute('data-tab') === name; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+  var panels = document.querySelectorAll('.tab-panel');
+  Array.prototype.forEach.call(panels, function(p){ p.classList.toggle('active', p.getAttribute('data-panel') === name); });
+  if (name === 'ip'){
+    var ipPanel = getPanel('ip');
+    if (ipPanel) loadAll(ipPanel).then(equalizeIpCardHeights);
+  } else if (name === 'conn'){
+    loadConn();
+    setTimeout(function(){ measureClip(); fitLabelWidths(); }, 0);
+  }
+}
+Array.prototype.forEach.call(document.querySelectorAll('.tab-btn'), function(b){
+  b.addEventListener('click', function(){ activateTab(b.getAttribute('data-tab')); });
+});
+/* 初始：默认激活 IP 信息标签页并加载 */
+activateTab('ip');
 </script>
   </body>
 </html>
