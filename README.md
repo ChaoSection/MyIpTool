@@ -10,7 +10,7 @@
 
 ## Demo / 在线示例
 
-实际部署示例：**<https://ip.chaosection.top/>**
+部署后访问你的 Worker 域名（形如 `https://<worker-name>.<subdomain>.workers.dev`）或自定义域名即可使用；本项目不绑定任何特定域名，可部署到任意 Cloudflare 域名下直接运行。
 
 ## 功能
 
@@ -71,8 +71,8 @@ wrangler secret put BAIDU_SECRET_KEY
 
 ### 自定义域名 / 路由
 
-若要让统一 Worker 接管生产域名（如 `ip.chaosection.top`），在 Cloudflare 给该域名加 Worker 路由 `ip.chaosection.top/*` → 本 Worker。
-页面用相对路径 `./cf-mt-worker.js` 时，该路由必须覆盖 `ip.chaosection.top/cf-mt-worker.js*`，翻译接口才能同域命中 Worker（否则落到 Pages 返回 404）。
+若要让统一 Worker 接管生产域名（如 `your-domain.example.com`），在 Cloudflare 给该域名加 Worker 路由 `your-domain.example.com/*` → 本 Worker。
+页面用相对路径 `./cf-mt-worker.js` 时，该路由必须覆盖 `your-domain.example.com/cf-mt-worker.js*`，翻译接口才能同域命中 Worker（否则落到 Pages 返回 404）。
 
 ## 如何获取部署参数
 
