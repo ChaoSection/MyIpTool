@@ -155,8 +155,6 @@ var CONN_CARDS = [
   { id:'google', title:'Google', url:'https://www.google.com/', img:'https://www.google.com/favicon.ico' },
   { id:'youtube', title:'YouTube', url:'https://www.youtube.com/', img:'https://www.youtube.com/favicon.ico' },
   { id:'github', title:'Github', url:'https://github.com/', img:'https://github.com/favicon.ico' },
-  { id:'cloudflare', title:'CloudFlare', url:'https://www.cloudflare.com/', img:'https://www.cloudflare.com/favicon.ico' },
-  { id:'chatgpt', title:'ChatGPT', url:'https://chatgpt.com/', img:'https://chatgpt.com/favicon.ico' },
   { id:'wechat', title:'微信', url:'https://weixin.qq.com/', img:'https://open.weixin.qq.com/zh_CN/htmledition/res/assets/res-design-download/icon64_appwx_logo.png' },
   { id:'baidu', title:'百度', url:'https://www.baidu.com/', img:'https://www.baidu.com/favicon.ico' },
   { id:'vqq', title:'腾讯视频', url:'https://v.qq.com/', img:'https://v.qq.com/favicon.ico' },
@@ -171,7 +169,6 @@ var CONN_CARDS = [
   { id:'x', title:'X(Twitter)', url:'https://x.com/', img:'https://x.com/favicon.ico', icon:'x.com' },
   { id:'bing', title:'Bing', url:'https://www.bing.com/', img:'https://www.bing.com/favicon.ico' },
   { id:'wikipedia', title:'维基百科', url:'https://www.wikipedia.org/', img:'https://www.wikipedia.org/favicon.ico' },
-  { id:'netflix', title:'Netflix', url:'https://www.netflix.com/', img:'https://www.netflix.com/favicon.ico', icon:'netflix.com' },
   /* ===== 第二批（B 级，2026-09-15 增补）：国内支付/社交/生活 + 国外社交/社区/AI ===== */
   { id:'alipay', title:'支付宝', url:'https://www.alipay.com/', img:'https://www.alipay.com/favicon.ico' },
   { id:'qq', title:'QQ', url:'https://www.qq.com/', img:'https://www.qq.com/favicon.ico' },
