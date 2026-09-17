@@ -332,7 +332,7 @@ async function baiduTranslateRemaining(){
     if (!t) return;
     /* ASN 字段不翻译（AS+数字 或字段模板含 asn，翻译后反而不易识别） */
     var tpl = el.getAttribute('data-tpl') || '';
-    var isIspSpan = /isp|llc|asorganization|asorg/i.test(tpl);
+    var isIspSpan = /isp|llc|asorganization|asorg|organi[sz]ation/i.test(tpl);
     if (/^AS\d+/i.test(t)) return;
     /* 提取连续英文字母组成的词组（可含空格，如 "Los Angeles"）；排除含数字/标点的片段 */
     var re = /[A-Za-z]+(?:\s+[A-Za-z]+)*/g, ms = t.match(re) || [];
